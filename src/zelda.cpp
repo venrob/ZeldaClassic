@@ -59,6 +59,8 @@
 #include "single_instance.h"
 #include "backend/AllBackends.h"
 
+//OMG jman is doing stuff again what is this I don't even
+
 #ifdef _MSC_VER
 #include <crtdbg.h>
 #define stricmp _stricmp
