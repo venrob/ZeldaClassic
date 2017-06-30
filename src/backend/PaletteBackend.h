@@ -83,11 +83,25 @@ public:
 	*/
 	void applyPaletteToScreen();
 
+	/*
+	* Quick test function to use select_palette instead of set_palette for Allegro GL initial test
+	*/
+	void selectPalette();
+
+	/*
+	* This function (re)builds the OpenGL pixel maps in order to simulate the use of palettes in OpenGL's RGBA mode
+	*/
+	void buildPixelMaps();
+
 	friend class Backend;
 private:
 	PaletteBackend();
 
 	PALETTE pal_;
+	GLfloat I_to_R[256];
+	GLfloat I_to_G[256];
+	GLfloat I_to_B[256];
+	GLfloat I_to_A[256];
 };
 
 

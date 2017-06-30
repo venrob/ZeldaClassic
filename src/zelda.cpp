@@ -2724,7 +2724,6 @@ int main(int argc, char* argv[])
         Z_error("Error");
         quit_game();
     }
-    
     // initialize Allegro
     
     Z_message("Initializing Allegro... ");
@@ -2734,6 +2733,11 @@ int main(int argc, char* argv[])
         Z_error("Failed Init!");
         quit_game();
     }
+	if (install_allegro_gl() != 0)
+	{
+		Z_error("Failed AGL Init!");
+		quit_game();
+	}
     
     three_finger_flag=false;
     //atexit(&dumb_exit);

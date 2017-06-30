@@ -21473,7 +21473,18 @@ int main(int argc, char **argv)
     set_uformat(U_ASCII);
     Z_message("Initializing Allegro... ");
     
-    allegro_init();
+    //allegro_init();
+
+	if (allegro_init() != 0)
+	{
+		Z_error("Failed Init!");
+		quit_game();
+	}
+	if (install_allegro_gl() != 0)
+	{
+		Z_error("Failed AGL Init!");
+		quit_game();
+	}
 	
 	three_finger_flag=false;
     register_bitmap_file_type("GIF",  load_gif, save_gif);

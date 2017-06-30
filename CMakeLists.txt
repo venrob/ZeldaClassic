@@ -40,6 +40,7 @@ include_directories(./include/dumb)
 include_directories(./include/alogg)
 include_directories(./include/almp3)
 include_directories(./include/gme)
+include_directories(./include/allegrogl)
 
 set(SOUNDLIB_MODULES
 	${CMAKE_SOURCE_DIR}/modules/soundlib/SoundlibCore.txt
@@ -100,11 +101,14 @@ endif()
 if(MSVC)
 	set(ALLEGROLIB "$<$<CONFIG:DEBUG>:${CMAKE_SOURCE_DIR}/libs/win32dbg/alleg44-debug.lib>" 
 				   "$<$<CONFIG:RELEASE>:${CMAKE_SOURCE_DIR}/libs/win32/alleg44.lib>")
+
+	set(OPENGLLIB "$<$<CONFIG:DEBUG>:opengl32.lib$<SEMICOLON>glu32.lib>"
+				  "$<$<CONFIG:RELEASE>:opengl32.lib$<SEMICOLON>glu32.lib>")
 	
 	add_definitions(-DALLEGRO_MSVC)
 	
-	set(IMAGELIBS "$<$<CONFIG:DEBUG>:${CMAKE_SOURCE_DIR}/libs/win32dbg/al_gif.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/libpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/zlibd.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/loadpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/libjpgal.lib>"
-	              "$<$<CONFIG:RELEASE>:${CMAKE_SOURCE_DIR}/libs/win32/al_gif.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/libpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/zlib.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/loadpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/libjpgal.lib>")
+	set(IMAGELIBS "$<$<CONFIG:DEBUG>:${CMAKE_SOURCE_DIR}/libs/win32dbg/al_gif.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/libpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/zlibd.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/loadpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/libjpgal.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/alleggl-debug.lib>"
+	              "$<$<CONFIG:RELEASE>:${CMAKE_SOURCE_DIR}/libs/win32/al_gif.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/libpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/zlib.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/loadpng.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/libjpgal.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/alleggl.lib>")
 	
 	set(SOUNDLIBS "$<$<CONFIG:DEBUG>:${CMAKE_SOURCE_DIR}/libs/win32dbg/aldmd.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/almp3.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/alogg.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/dumbd.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32dbg/gme.lib>"
 	              "$<$<CONFIG:RELEASE>:${CMAKE_SOURCE_DIR}/libs/win32/aldmb.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/almp3.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/alogg.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/dumb.lib$<SEMICOLON>${CMAKE_SOURCE_DIR}/libs/win32/gme.lib>")
@@ -138,8 +142,10 @@ elseif(LINUX)
 	set(ALLEGROLIB alleg)
 	add_definitions(-DALLEGRO_UNIX)
 	execute_process(COMMAND "${CMAKE_COMMAND}" "-H${CMAKE_SOURCE_DIR}/allegro" "-B${CMAKE_SOURCE_DIR}/allegro" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/allegro")
+
+	set(OPENGLLIB GL GLU)
 	
-	set(IMAGELIBS algif ldpng jpgal png z)
+	set(IMAGELIBS algif ldpng jpgal png z agl)
 	set(SOUNDLIBS aldmb almp3 alogg dumb gme asound)
 	set(X11_LIBRARIES X11 Xext Xcursor Xxf86vm pthread Xpm dl)
 	
@@ -183,7 +189,7 @@ endif()
 	
 add_executable(romview ${ROMVIEW_CORE_SOURCES} ${ROMVIEW_GUI_SOURCES} ${ROMVIEWEXTRASOURCES} ${ROMVIEW_MODULES})
 
-target_link_libraries(romview ${IMAGELIBS} ${ALLEGROLIB} ${SOUNDLIBS} ${ROMVIEWLIBSEXTRA})
+target_link_libraries(romview ${IMAGELIBS} ${ALLEGROLIB} ${OPENGLLIB} ${SOUNDLIBS} ${ROMVIEWLIBSEXTRA})
 
 #############################################################
 # Zelda
@@ -205,7 +211,7 @@ endif()
 	
 add_executable(zelda ${ZELDA_CORE_SOURCES} ${ZELDA_GUI_SOURCES} ${ZELDA_SPRITE_SOURCES} ${ZELDA_SUBSCREEN_SOURCES} ${ZELDAEXTRASOURCES} ${ZELDA_MODULES})
 
-target_link_libraries(zelda zcsound ${IMAGELIBS} ${ALLEGROLIB} ${ZELDALIBSEXTRA})
+target_link_libraries(zelda zcsound ${IMAGELIBS} ${ALLEGROLIB} ${OPENGLLIB} ${ZELDALIBSEXTRA})
 if(MSVC AND USE_PCH)
 	set_target_properties(zelda PROPERTIES COMPILE_FLAGS "/Yuprecompiled.h /FIprecompiled.h /Fp\"${ZCPrecompiledBinary}\"" OBJECT_DEPENDS "${ZCPrecompiledBinary}")
 	target_compile_definitions(zelda PRIVATE ZC_PCH)
@@ -231,7 +237,7 @@ endif()
 	
 add_executable(zquest ${ZQUEST_CORE_SOURCES} ${ZQUEST_GUI_SOURCES} ${ZQUEST_MISC_SOURCES} ${ZQUEST_ZSCRIPT_SOURCES} ${ZQUESTEXTRASOURCES} ${BISON_ZScriptParser_OUTPUTS} ${FLEX_ZScriptLexer_OUTPUTS} ${ZQUEST_MODULES})
 
-target_link_libraries(zquest zcsound ${IMAGELIBS} ${ALLEGROLIB} ${ZQUESTLIBSEXTRA})
+target_link_libraries(zquest zcsound ${IMAGELIBS} ${ALLEGROLIB} ${OPENGLLIB} ${ZQUESTLIBSEXTRA})
 if(MSVC)
 	if(USE_PCH)
 		set_target_properties(zquest PROPERTIES COMPILE_FLAGS "/Yuprecompiled.h /FIprecompiled.h /Fp\"${ZQPrecompiledBinary}\"" OBJECT_DEPENDS "${ZQPrecompiledBinary}")

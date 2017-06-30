@@ -53,6 +53,7 @@ GraphicsBackend::GraphicsBackend() :
 	hw_screen_(NULL),
 	backbuffer_(NULL),
 	nativebuffer_(NULL),
+	convertbuffer_(NULL),
 	initialized_(false),
 	screenw_(320),
 	screenh_(240),
@@ -71,8 +72,11 @@ GraphicsBackend::~GraphicsBackend()
 	{
 		remove_int(update_frame_counter);
 		screen = hw_screen_;
-		destroy_bitmap(backbuffer_);		
+		destroy_bitmap(backbuffer_);
+		destroy_bitmap(convertbuffer_);
+		allegro_gl_set_allegro_mode();
 		clear_to_color(screen, 0);
+		allegro_gl_unset_allegro_mode();
 	}
 	if(nativebuffer_)
 		destroy_bitmap(nativebuffer_);
@@ -143,20 +147,35 @@ bool GraphicsBackend::showBackBuffer()
 	Backend::mouse->renderCursor(backbuffer_);
 
 	// Allegro crashes if you call set_palette and screen does not point to the hardware buffer
-	screen = hw_screen_;
-	Backend::palette->applyPaletteToScreen();
-	screen = backbuffer_;
+	if (get_color_depth() == 8)
+	{
+		screen = hw_screen_;
+		Backend::palette->applyPaletteToScreen();
+		screen = backbuffer_;
+	}
 
+	Backend::palette->selectPalette();
+
+	screen = hw_screen_;
 	if (native_)
 	{
-		stretch_blit(backbuffer_, nativebuffer_, 0, 0, virtualScreenW(), virtualScreenH(), 0, 0, SCREEN_W, SCREEN_H);
 		set_color_conversion(COLORCONV_TOTAL);
+		blit(backbuffer_, convertbuffer_, 0, 0, 0, 0, virtualScreenW(), virtualScreenH());
+		stretch_blit(convertbuffer_, nativebuffer_, 0, 0, virtualScreenW(), virtualScreenH(), 0, 0, SCREEN_W, SCREEN_H);
+		allegro_gl_set_allegro_mode();
 		blit(nativebuffer_, hw_screen_, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+		allegro_gl_unset_allegro_mode();
 	}
 	else
 	{
-		stretch_blit(backbuffer_, hw_screen_, 0, 0, virtualScreenW(), virtualScreenH(), 0, 0, SCREEN_W, SCREEN_H);
+		set_color_conversion(COLORCONV_TOTAL);
+		blit(backbuffer_, convertbuffer_, 0, 0, 0, 0, virtualScreenW(), virtualScreenH());
+		allegro_gl_set_allegro_mode();
+		stretch_blit(convertbuffer_, hw_screen_, 0, 0, virtualScreenW(), virtualScreenH(), 0, 0, SCREEN_W, SCREEN_H);
+		allegro_gl_unset_allegro_mode();
 	}
+	screen = backbuffer_;
+	allegro_gl_flip();
 	Backend::mouse->unrenderCursor(backbuffer_);
 	frames_this_second++;
 	return true;
@@ -229,7 +248,8 @@ bool GraphicsBackend::trySettingVideoMode()
 
 	screen = hw_screen_;
 
-	int depth = native_ ? desktop_color_depth() : 8;
+	//int depth = native_ ? desktop_color_depth() : 8;
+	int depth = desktop_color_depth();
 
 	bool ok = false;
 
@@ -242,10 +262,15 @@ bool GraphicsBackend::trySettingVideoMode()
 		{
 			int w = virtualmodes_[i].first;
 			int h = virtualmodes_[i].second;
-			set_color_depth(depth);
-			if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, w, h, 0, 0) != 0)
+
+			allegro_gl_set(AGL_Z_DEPTH, 8);
+			allegro_gl_set(AGL_COLOR_DEPTH, depth);
+			allegro_gl_set(AGL_SUGGEST, AGL_Z_DEPTH | AGL_COLOR_DEPTH);
+			allegro_gl_set(AGL_REQUIRE, AGL_DOUBLEBUFFER);
+
+			if (set_gfx_mode(GFX_OPENGL_FULLSCREEN, w, h, 0, 0) != 0)
 			{
-				Z_message("Unable to set gfx mode at -%d %dbpp %d x %d \n", GFX_AUTODETECT_FULLSCREEN, 8, w, h);
+				Z_message("Unable to set gfx mode at -%d %dbpp %d x %d \n", GFX_OPENGL_FULLSCREEN, depth, w, h);
 				rest(switchdelay_);
 			}
 			else
@@ -266,10 +291,14 @@ bool GraphicsBackend::trySettingVideoMode()
 	if(!ok)
 	{
 		// Try the prescribed resolution
-		set_color_depth(depth);
-		if (set_gfx_mode(GFX_AUTODETECT_WINDOWED, screenw_, screenh_, 0, 0) != 0)
+		allegro_gl_set(AGL_Z_DEPTH, 8);
+		allegro_gl_set(AGL_COLOR_DEPTH, depth);
+		allegro_gl_set(AGL_SUGGEST, AGL_Z_DEPTH | AGL_COLOR_DEPTH);
+		allegro_gl_set(AGL_REQUIRE, AGL_DOUBLEBUFFER);
+
+		if (set_gfx_mode(GFX_OPENGL_WINDOWED, screenw_, screenh_, 0, 0) != 0)
 		{
-			Z_message("Unable to set gfx mode at -%d %dbpp %d x %d \n", GFX_AUTODETECT_WINDOWED, 8, screenw_, screenh_);
+			Z_message("Unable to set gfx mode at -%d %dbpp %d x %d \n", GFX_OPENGL_WINDOWED, depth, screenw_, screenh_);
 			rest(switchdelay_);
 		}
 		else
@@ -293,10 +322,14 @@ bool GraphicsBackend::trySettingVideoMode()
 				continue;
 			}
 
-			set_color_depth(depth);
-			if (set_gfx_mode(GFX_AUTODETECT_WINDOWED, w, h, 0, 0) != 0)
+			allegro_gl_set(AGL_Z_DEPTH, 8);
+			allegro_gl_set(AGL_COLOR_DEPTH, depth);
+			allegro_gl_set(AGL_SUGGEST, AGL_Z_DEPTH | AGL_COLOR_DEPTH);
+			allegro_gl_set(AGL_REQUIRE, AGL_DOUBLEBUFFER);
+
+			if (set_gfx_mode(GFX_OPENGL_WINDOWED, w, h, 0, 0) != 0)
 			{
-				Z_message("Unable to set gfx mode at -%d %dbpp %d x %d \n", GFX_AUTODETECT_WINDOWED, 8, w, h);
+				Z_message("Unable to set gfx mode at -%d %dbpp %d x %d \n", GFX_OPENGL_WINDOWED, depth, w, h);
 				rest(switchdelay_);
 			}
 			else
@@ -317,7 +350,7 @@ bool GraphicsBackend::trySettingVideoMode()
 	screenw_ = SCREEN_W;
 	screenh_ = SCREEN_H;
 
-	Backend::palette->applyPaletteToScreen();
+	if(get_color_depth() == 8) Backend::palette->applyPaletteToScreen();
 
 	hw_screen_ = screen;
 		
@@ -365,14 +398,16 @@ bool GraphicsBackend::trySettingVideoMode()
 		virtualh_ = virtualmodes_[newmode].second;
 		destroy_bitmap(backbuffer_);
 		backbuffer_ = create_bitmap_ex(8, virtualw_, virtualh_);
+		convertbuffer_ = create_bitmap_ex(depth, virtualw_, virtualh_);
 		clear_to_color(backbuffer_, 0);
+		clear_to_color(convertbuffer_, 0);
 	}
 	if (native_)
 	{
 		if (nativebuffer_)
 			destroy_bitmap(nativebuffer_);
 
-		nativebuffer_ = create_bitmap_ex(8, SCREEN_W, SCREEN_H);
+		nativebuffer_ = create_bitmap_ex(depth, SCREEN_W, SCREEN_H);
 	}
 
 	screen = backbuffer_;

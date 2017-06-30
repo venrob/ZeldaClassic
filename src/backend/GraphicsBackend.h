@@ -312,6 +312,7 @@ private:
 	BITMAP *hw_screen_;
 	BITMAP *backbuffer_;
 	BITMAP *nativebuffer_;
+	BITMAP *convertbuffer_;
 
 	bool initialized_;
 	int screenw_, screenh_;

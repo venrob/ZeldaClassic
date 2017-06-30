@@ -16,6 +16,7 @@
 
 #include <allegro.h>
 #include <allegro/internal/aintern.h>
+#include <alleggl.h>
 #include "alleg_compat.h"
 
 #ifdef __cplusplus
