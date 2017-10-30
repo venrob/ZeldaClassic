@@ -4545,6 +4545,26 @@ int onClickToFreeze()
     return D_O_K;
 }
 
+int OnSaveZCConfig()
+{
+	if(jwin_alert3(
+			"Save Configuration", 
+			"Are you sure that you wish to save your present configuration settings?", 
+			"This will overwrite your prior settings!",
+			NULL,
+		 "&Yes", 
+		"&No", 
+		NULL, 
+		'y', 
+		'n', 
+		NULL, 
+		lfont) == 1)	
+	{
+		save_game_configs();
+		return D_O_K;
+	}
+	else return D_O_K;
+}
 
 int onDebugConsole()
 {
@@ -4569,6 +4589,7 @@ int onDebugConsole()
 			zconsole = true;
 			return D_O_K;
 		}
+		else return D_O_K;
 	}
 	else { 
 		
@@ -6542,6 +6563,7 @@ static MENU misc_menu[] =
     { (char *)"",                           NULL,                    NULL,                      0, NULL },
     { (char *)"Take &Snapshot\tF12",        onSnapshot,              NULL,                      0, NULL },
     { (char *)"Sc&reen Saver...",           onScreenSaver,           NULL,                      0, NULL },
+    { (char *)"Save ZC Settings",           OnSaveZCConfig,           NULL,                      0, NULL },
     { (char *)"Show Debug Console",           onDebugConsole,           NULL,                      0, NULL },
     { NULL,                                 NULL,                    NULL,                      0, NULL }
 };
