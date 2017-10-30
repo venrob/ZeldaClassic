@@ -8,9 +8,11 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <stdio.h>
 
 #include "CompilerUtils.h"
+#include "Opcode.h"
 #include "Types.h"
 
 using std::string;
@@ -24,48 +26,11 @@ namespace ZScript
 	class Program;
 }
 
-class Opcode
-{
-public:
-    Opcode() : label(-1) {}
-    virtual ~Opcode() {}
-    virtual string toString()=0;
-    int getLabel()
-    {
-        return label;
-    }
-    void setLabel(int l)
-    {
-        label=l;
-    }
-    string printLine(bool showlabel = false)
-    {
-        char buf[100];
-        
-        if(label == -1)
-            return " " + toString() + "\n";
-            
-        sprintf(buf, "l%d:", label);
-        return (showlabel ? string(buf) : " ")+ toString() + "\n";
-    }
-    Opcode * makeClone()
-    {
-        Opcode *dup = clone();
-        dup->setLabel(label);
-        return dup;
-    }
-    virtual void execute(ArgumentVisitor&, void*) {}
-protected:
-    virtual Opcode *clone()=0;
-private:
-    int label;
-};
-
 class ScriptsData
 {
 public:
 	ScriptsData(ZScript::Program&);
-    std::map<string, vector<Opcode *> > theScripts;
+	std::map<string, vector<ZScript::Opcode> > theScripts;
 	std::map<string, ZScript::ScriptType> scriptTypes;
 };
 
@@ -115,7 +80,9 @@ public:
     static pair<long,bool> parseLong(pair<string,string> parts);
 private:
     static string prepareFilename(string const& filename);
-    static vector<Opcode *> assembleOne(ZScript::Program& program, vector<Opcode*> script, int numparams);
+	static vector<ZScript::Opcode> assembleOne(
+			ZScript::Program& program,
+			vector<ZScript::Opcode> const& script, int numparams);
     static int vid;
     static int fid;
     static int gid;
