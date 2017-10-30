@@ -2020,6 +2020,7 @@ struct DoorComboSet
 
 struct dmap
 {
+	
     dmap()
     {
         map = 0;
@@ -2057,6 +2058,7 @@ struct dmap
 
         flags = 0;
     }
+    
 
     byte map;
     word level;

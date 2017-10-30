@@ -1195,7 +1195,9 @@ int get_qst_buffers()
     if((DMaps=(dmap*)zc_malloc(sizeof(dmap)*MAXDMAPS))==NULL)
         return 0;
         
-    memset(DMaps, 0, sizeof(dmap)*MAXDMAPS);
+    //memset(DMaps, 0, sizeof(dmap)*MAXDMAPS);
+    for (int i = 0; i < MAXDMAPS; ++i)
+        new (&((dmap*)DMaps)[i]) dmap();
     Z_message("OK\n");                                        // Allocating dmap buffer...
     
     memrequested+=(sizeof(newcombo)*MAXCOMBOS);
@@ -3388,6 +3390,7 @@ int readdmaps(PACKFILE *f, zquestheader *Header, word, word, word start_dmap, wo
     word s_version=0, s_cversion=0;
     byte padding;
     
+	/* DD's new code. 
     if(keepdata==true)
     {
         for(int i=0; i<max_dmaps; i++)
@@ -3398,7 +3401,18 @@ int readdmaps(PACKFILE *f, zquestheader *Header, word, word, word start_dmap, wo
             DMaps[start_dmap+i].type |= dmCAVE;
         }
     }
-    
+	*/
+    if(keepdata==true)
+    {
+	for(int i=0; i<max_dmaps; i++)
+        {
+            DMaps[start_dmap + i].disabledItems.clear();
+            DMaps[start_dmap + i] = dmap();
+            sprintf(DMaps[start_dmap+i].title,"                    ");
+            sprintf(DMaps[start_dmap+i].intro,"                                                                        ");
+            DMaps[start_dmap+i].type |= dmCAVE;
+        }
+    }
     if(!Header || Header->zelda_version > 0x192)
     {
         //section version info
