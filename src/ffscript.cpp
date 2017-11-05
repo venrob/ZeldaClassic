@@ -68,9 +68,10 @@ extern std::map<int, std::pair<string,string> > globalmap;
 
 PALETTE tempgreypal; //Palettes go here. This is used for Greyscale() / Monochrome()
 
-FFScript ffengine;
+FFScript FFCore;
+long FFScript::linktile = 0;
 
-byte FF_rules[512]; //For Migration of Quest Rules, and Scritp Engine Rules
+byte FF_rules[QUESTRULES_SIZE+EXTRARULES_SIZE+FFRULES_SIZE]; //For Migration of Quest Rules, and Scritp Engine Rules
 long FF_link_tile;	//Overrides for the tile used when blitting Limk to the bitmap; and a var to hold a script-set action/
 byte FF_link_action; //This way, we can make safe replicas of internal Link actions to be set by script. 
 	
@@ -1305,6 +1306,9 @@ long get_register(const long arg)
         
     case LINKEATEN:
 	ret=(int)Link.getEaten()*10000;
+	break;
+    case LINKSCRIPTTILE:
+	ret=FFScript::getLinkTile()*10000;
 	break;
         
         
@@ -4259,6 +4263,10 @@ void set_register(const long arg, const long value)
 
       case LINKEATEN:
 	Link.setEaten(value/10000);
+	break;
+      
+      case LINKSCRIPTTILE:
+	FFScript::setLinkTile(value/10000);
 	break;
     
       case GAMESETA:
@@ -12184,7 +12192,7 @@ int FFScript::getQRBit(int rule)
 
 void FFScript::setLinkTile(int t)
 {
-	FF_link_tile = vbound(t, 0, NEWMAXTILES);
+	linktile = vbound(t, 0, NEWMAXTILES);
 }
 
 void FFScript::setLinkAction(int a)
@@ -12194,7 +12202,7 @@ void FFScript::setLinkAction(int a)
 
 int FFScript::getLinkTile()
 {
-	return FF_link_tile;
+	return linktile;
 }
 
 int FFScript::getLinkAction()
@@ -12228,3 +12236,17 @@ void FFScript::init()
 	for ( int q = 0; q < SCRIPT_DRAWING_RULES; q++ ) ScriptDrawingRules[q] = 0;
 	for ( int q = 0; q < NUM_USER_MIDI_OVERRIDES; q++ ) FF_UserMidis[q] = 0;
 }
+
+void FFScript::SetFFRules(){
+	
+	int pos = 0;
+	for ( int q = 0; q < QUESTRULES_SIZE; q++ ) 
+	{
+		FF_rules[q] = quest_rules[q]; pos++;
+	}
+	for ( int q = 0; q < EXTRARULES_SIZE; q++ ) 
+	{
+		FF_rules[q+pos] = extra_rules[q];
+	}
+}
+

@@ -23,9 +23,9 @@
 
 #define MIN_INTERNAL_BITMAP -1 //RT_SCREEN
 #define MAX_INTERNAL_BITMAP 6 //RT_BITMAP6
-#define FFRULES_SIZE 512
+#define FFRULES_SIZE 128
 
-extern byte FF_rules[512]; //For Migration of Quest Rules, and Scritp Engine Rules
+extern byte FF_rules[QUESTRULES_SIZE+EXTRARULES_SIZE+FFRULES_SIZE]; //For Migration of Quest Rules, and Scritp Engine Rules
 extern long FF_link_tile;	//Overrides for the tile used when blitting Limk to the bitmap; and a var to hold a script-set action/
 extern byte FF_link_action; //This way, we can make safe replicas of internal Link actions to be set by script. 
 	
@@ -56,16 +56,17 @@ class FFScript
 	
     
 public:
-	
+	static long linktile;
 void init();
 int getQRBit(int rule);	
 void setRule(int rule, bool s);
 bool getRule(int rule_bit);
 void setFFRules();
-void setLinkTile(int t);
-int getLinkTile();
+static void setLinkTile(int t);
+static int getLinkTile();
 void setLinkAction(int a);
 int getLinkAction();
+void SetFFRules();
 //FFScript();
 //static void init();
 
@@ -82,7 +83,7 @@ int getLinkAction();
 	{
 		return vbound(val,0,ZS_BYTE);
 	}
-	static INLINE int ZSbound_char(int val)
+	static INLINE int ZSbound_char(int val) 
 	{
 		return vbound(val,0,ZS_CHAR);
 	}
@@ -2187,9 +2188,10 @@ enum ASM_DEFINE
 #define NPCDATARESERVED017 0x11D1
 #define NPCDATARESERVED018 0x11D2
 #define NPCDATARESERVED019 0x11D3
+#define LINKSCRIPTTILE 0x11D4
 
 
-#define NUMVARIABLES         0x11D4
+#define NUMVARIABLES         0x11D5
 
 // Script types
 
