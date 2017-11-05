@@ -67,7 +67,9 @@ static int getLinkTile();
 void setLinkAction(int a);
 int getLinkAction();
 void SetFFRules();
-//FFScript();
+FFScript();
+FFScript(FFScript const & other);
+virtual ~FFScript();
 //static void init();
 
 

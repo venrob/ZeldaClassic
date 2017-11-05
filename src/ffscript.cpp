@@ -69,6 +69,22 @@ extern std::map<int, std::pair<string,string> > globalmap;
 PALETTE tempgreypal; //Palettes go here. This is used for Greyscale() / Monochrome()
 
 FFScript FFCore;
+
+FFScript::FFScript()
+{
+    //Initialise all class members:
+    linktile = 0;
+}
+
+FFScript::FFScript(FFScript const & other)
+{
+    linktile = other.linktile;
+}
+
+FFScript::~FFScript()
+{
+}
+
 long FFScript::linktile = 0;
 
 byte FF_rules[QUESTRULES_SIZE+EXTRARULES_SIZE+FFRULES_SIZE]; //For Migration of Quest Rules, and Scritp Engine Rules
