@@ -33,6 +33,12 @@ public:
     virtual void caseTypeText(ASTTypeText &host, void *param);
     virtual void caseTypeInput(ASTTypeInput &host, void *param);
     
+    virtual void caseTypeDMap(ASTTypeDMap &host, void *param);
+    virtual void caseTypeZMsg(ASTTypeZMsg &host, void *param);
+    virtual void caseTypeShopdata(ASTTypeShopdata &host, void *param);
+    
+    virtual void caseTypeNil(ASTTypeNil &host, void *param);
+    
     virtual void caseTypeLWpn(ASTTypeLWpn &host, void *param);
     virtual void caseTypeEWpn(ASTTypeEWpn &host, void *param);
     virtual void caseVarDecl(ASTVarDecl &host, void *param);
@@ -505,6 +511,11 @@ public:
     virtual void caseTypeGraphics(ASTTypeGraphics &host, void *param);
     virtual void caseTypeText(ASTTypeText &host, void *param);
     virtual void caseTypeInput(ASTTypeInput &host, void *param);
+    
+    virtual void caseTypeDMap(ASTTypeDMap &host, void *param);
+    virtual void caseTypeZMsg(ASTTypeZMsg &host, void *param);
+    virtual void caseTypeShopdata(ASTTypeShopdata &host, void *param);
+    virtual void caseTypeNil(ASTTypeNil &host, void *param);
 };
 
 class IsDotExpr : public ASTVisitor

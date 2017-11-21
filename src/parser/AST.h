@@ -61,6 +61,10 @@ class ASTTypeSpriteData;
 class ASTTypeGraphics;
 class ASTTypeText;
 class ASTTypeInput;
+class ASTTypeDMap;
+class ASTTypeZMsg;
+class ASTTypeShopdata;
+class ASTTypeNil;
 
 class ASTTypeLWpn;
 class ASTTypeEWpn;
@@ -225,6 +229,22 @@ public:
         caseDefault(param);
     }
     virtual void caseTypeInput(ASTTypeInput &, void *param)
+    {
+        caseDefault(param);
+    }
+    virtual void caseTypeDMap(ASTTypeDMap &, void *param)
+    {
+        caseDefault(param);
+    }
+    virtual void caseTypeZMsg(ASTTypeZMsg &, void *param)
+    {
+        caseDefault(param);
+    }
+    virtual void caseTypeShopdata(ASTTypeShopdata &, void *param)
+    {
+        caseDefault(param);
+    }
+    virtual void caseTypeNil(ASTTypeNil &, void *param)
     {
         caseDefault(param);
     }
@@ -984,6 +1004,60 @@ private:
     //NOT IMPLEMENTED; DO NOT USE
     ASTTypeText(ASTTypeText &);
     ASTTypeText &operator=(ASTTypeText &);
+};
+
+class ASTTypeDMap : public ASTType
+{
+public:
+    ASTTypeDMap(LocationData Loc) : ASTType(Loc) {}
+    void execute(ASTVisitor &visitor, void *param)
+    {
+        visitor.caseTypeDMap(*this,param);
+    }
+private:
+    //NOT IMPLEMENTED; DO NOT USE
+    ASTTypeDMap(ASTTypeDMap &);
+    ASTTypeDMap &operator=(ASTTypeDMap &);
+};
+class ASTTypeZMsg : public ASTType
+{
+public:
+    ASTTypeZMsg(LocationData Loc) : ASTType(Loc) {}
+    void execute(ASTVisitor &visitor, void *param)
+    {
+        visitor.caseTypeZMsg(*this,param);
+    }
+private:
+    //NOT IMPLEMENTED; DO NOT USE
+    ASTTypeZMsg(ASTTypeZMsg &);
+    ASTTypeZMsg &operator=(ASTTypeZMsg &);
+};
+class ASTTypeShopdata : public ASTType
+{
+public:
+    ASTTypeShopdata(LocationData Loc) : ASTType(Loc) {}
+    void execute(ASTVisitor &visitor, void *param)
+    {
+        visitor.caseTypeShopdata(*this,param);
+    }
+private:
+    //NOT IMPLEMENTED; DO NOT USE
+    ASTTypeShopdata(ASTTypeShopdata &);
+    ASTTypeShopdata &operator=(ASTTypeShopdata &);
+};
+
+class ASTTypeNil : public ASTType
+{
+public:
+    ASTTypeNil(LocationData Loc) : ASTType(Loc) {}
+    void execute(ASTVisitor &visitor, void *param)
+    {
+        visitor.caseTypeNil(*this,param);
+    }
+private:
+    //NOT IMPLEMENTED; DO NOT USE
+    ASTTypeNil(ASTTypeNil &);
+    ASTTypeNil &operator=(ASTTypeNil &);
 };
 
 class ASTTypeInput : public ASTType

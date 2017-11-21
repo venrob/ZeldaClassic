@@ -180,6 +180,26 @@ void Clone::caseTypeInput(ASTTypeInput &host, void *)
 {
     result = new ASTTypeInput(host.getLocation());
 }
+
+void Clone::caseTypeDMap(ASTTypeDMap &host, void *)
+{
+    result = new ASTTypeDMap(host.getLocation());
+}
+void Clone::caseTypeShopdata(ASTTypeShopdata &host, void *)
+{
+    result = new ASTTypeShopdata(host.getLocation());
+}
+
+
+void Clone::caseTypeNil(ASTTypeNil &host, void *)
+{
+    result = new ASTTypeNil(host.getLocation());
+}
+
+void Clone::caseTypeZMsg(ASTTypeZMsg &host, void *)
+{
+    result = new ASTTypeZMsg(host.getLocation());
+}
 void Clone::caseVarDecl(ASTVarDecl &host, void *param)
 {
     host.getType()->execute(*this,param);
@@ -1020,4 +1040,20 @@ void ExtractType::caseTypeInput(ASTTypeInput &, void *param)
 {
     *(int *)param = ScriptParser::TYPE_INPUT;
 }
+void ExtractType::caseTypeDMap(ASTTypeDMap &, void *param)
+{
+    *(int *)param = ScriptParser::TYPE_DMAPDATA;
+}
+void ExtractType::caseTypeZMsg(ASTTypeZMsg &, void *param)
+{
+    *(int *)param = ScriptParser::TYPE_ZMESSAGE;
+}
+void ExtractType::caseTypeShopdata(ASTTypeShopdata &, void *param)
+{
+    *(int *)param = ScriptParser::TYPE_SHOPDATA;
+}
 
+void ExtractType::caseTypeNil(ASTTypeNil &, void *param)
+{
+    *(int *)param = ScriptParser::TYPE_NIL;
+}
