@@ -1,9 +1,10 @@
 //2.53 Updated to 16th Jan, 2017
 #include "../precompiled.h" //always first
 
+#include "DataStructs.h"
 #include "TypeChecker.h"
 #include "ParseError.h"
-#include "GlobalSymbols.h"
+#include "Library.h"
 #include "../zsyssimple.h"
 #include <assert.h>
 #include <string>
@@ -286,128 +287,15 @@ void TypeCheck::caseExprArrow(ASTExprArrow &host, void *param)
     if(isIndexed)
         name += "[]";
             
-    switch(type)
+    Library::Base* lib = Library::getLibraryForType(type);
+    if (!lib)
     {
-    case ScriptParser::TYPE_FFC:
-    {
-        fidparam = FFCSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_LINK:
-    {
-        fidparam = LinkSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-            
-    case ScriptParser::TYPE_SCREEN:
-    {
-        fidparam = ScreenSymbols::getInst().matchFunction(name, st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_GAME:
-    {
-        fidparam = GameSymbols::getInst().matchFunction(name, st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_ITEM:
-    {
-        fidparam = ItemSymbols::getInst().matchFunction(name, st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_ITEMCLASS:
-    {
-        fidparam = ItemclassSymbols::getInst().matchFunction(name, st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_NPC:
-    {
-        fidparam = NPCSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_LWPN:
-    {
-        fidparam = LinkWeaponSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_EWPN:
-    {
-        fidparam = EnemyWeaponSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_NPCDATA:
-    {
-        fidparam = NPCDataSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_DEBUG:
-    {
-        fidparam = DebugSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_AUDIO:
-    {
-        fidparam = AudioSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_COMBOS:
-    {
-        fidparam = CombosPtrSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_SPRITEDATA:
-    {
-        fidparam = SpriteDataSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_GRAPHICS:
-    {
-        fidparam = GfxPtrSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_TEXT:
-    {
-        fidparam = TextPtrSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_INPUT:
-    {
-        fidparam = InputSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_MAPDATA:
-    {
-        fidparam = MapDataSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_DMAPDATA:
-    {
-        fidparam = DMapDataSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    
-    case ScriptParser::TYPE_SHOPDATA:
-    {
-        fidparam = ShopDataSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    case ScriptParser::TYPE_ZMESSAGE:
-    {
-        fidparam = MessageDataSymbols::getInst().matchFunction(name,st);
-        break;
-    }
-    default:
         failure = true;
         printErrorMsg(&host, ARROWNOTPOINTER);
         return;
-}
+    }
+    fidparam = lib->matchFunction(name, st);
+
 
     if(fidparam.first == -1 || (int)fidparam.second.size() != (isIndexed ? 2 : 1) || fidparam.second[0] != type)
 {
@@ -624,132 +512,9 @@ void TypeCheck::caseFuncCall(ASTFuncCall &host, void *param)
         int type = name->getLVal()->getType();
         pair<int, vector<int> > fidtype;
 
-        switch(type)
-        {
-        case ScriptParser::TYPE_FFC:
-            fidtype = FFCSymbols::getInst().matchFunction(name->getName(),st);
-            break;
-    
-        case ScriptParser::TYPE_LINK:
-            fidtype = LinkSymbols::getInst().matchFunction(name->getName(),st);
-            break;
-        
-        case ScriptParser::TYPE_SCREEN:
-            fidtype = ScreenSymbols::getInst().matchFunction(name->getName(),st);
-            break;
-    
-        case ScriptParser::TYPE_GAME:
-            fidtype = GameSymbols::getInst().matchFunction(name->getName(),st);
-            break;
-    
-        case ScriptParser::TYPE_ITEM:
-            fidtype = ItemSymbols::getInst().matchFunction(name->getName(),st);
-            break;
-        
-        case ScriptParser::TYPE_ITEMCLASS:
-            fidtype = ItemclassSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-            
-        case ScriptParser::TYPE_NPC:
-            fidtype = NPCSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-            
-        case ScriptParser::TYPE_LWPN:
-            fidtype = LinkWeaponSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-            
-        case ScriptParser::TYPE_EWPN:
-            fidtype = EnemyWeaponSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-            
-        case ScriptParser::TYPE_NPCDATA:
-            fidtype = NPCDataSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-
-        case ScriptParser::TYPE_MAPDATA:
-            fidtype = MapDataSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-
-        case ScriptParser::TYPE_DEBUG:
-            fidtype = DebugSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-
-        case ScriptParser::TYPE_AUDIO:
-            fidtype = AudioSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-
-        case ScriptParser::TYPE_COMBOS:
-            fidtype = CombosPtrSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-
-        case ScriptParser::TYPE_SPRITEDATA:
-            fidtype = SpriteDataSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-
-        case ScriptParser::TYPE_GRAPHICS:
-            fidtype = GfxPtrSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-
-        case ScriptParser::TYPE_TEXT:
-            fidtype = TextPtrSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-	
-        case ScriptParser::TYPE_INPUT:
-            fidtype = InputSymbols::getInst().matchFunction(name->getName(), st);
-            break;
-            
-        case ScriptParser::TYPE_DMAPDATA:
-	        fidtype = DMapDataSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-
-        case ScriptParser::TYPE_ZMESSAGE:
-	        fidtype = MessageDataSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-
-        case ScriptParser::TYPE_SHOPDATA:
-	        fidtype = ShopDataSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	
-        case ScriptParser::TYPE_UNTYPED:
-	        fidtype = UntypedSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_DROPSET:
-	        fidtype = DropsetSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_PONDS:
-	        fidtype = PondSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_WARPRING:
-	        fidtype = WarpringSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_DOORSET:
-	        fidtype = DoorsetSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_ZUICOLOURS:
-	        fidtype = MiscColourSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_RGBDATA:
-	        fidtype = RGBSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_PALETTE:
-	        fidtype = PaletteSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_TUNES:
-	        fidtype = TunesSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_PALCYCLE:
-	        fidtype = PalCycleSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_GAMEDATA:
-	        fidtype = GamedataSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-	case ScriptParser::TYPE_CHEATS:
-	        fidtype = CheatsSymbols::getInst().matchFunction(name->getName(), st);
-	        break;
-
-        default:
-            assert(false);
-        }
+        Library::Base* lib = Library::getLibraryForType(type);
+        assert(lib);
+        fidtype = lib->matchFunction(name->getName(), st);
 
         if(fidtype.first == -1)
         {
@@ -2015,113 +1780,14 @@ void GetLValType::caseExprArrow(ASTExprArrow &host, void *param)
         
     pair<int, vector<int> > fidparam;
     
-    switch(type)
+    Library::Base* lib = Library::getLibraryForType(type);
+    if (!lib)
     {
-    case ScriptParser::TYPE_FFC:
-        fidparam = FFCSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_LINK:
-        fidparam = LinkSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_SCREEN:
-        fidparam = ScreenSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_GAME:
-        fidparam = GameSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_ITEM:
-        fidparam = ItemSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_ITEMCLASS:
-        fidparam = ItemclassSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_NPC:
-        fidparam = NPCSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_LWPN:
-        fidparam = LinkWeaponSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_EWPN:
-        fidparam = EnemyWeaponSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_NPCDATA:
-        fidparam = NPCDataSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_MAPDATA:
-        fidparam = MapDataSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_DEBUG:
-        fidparam = DebugSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_AUDIO:
-        fidparam = AudioSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_COMBOS:
-        fidparam = CombosPtrSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_SPRITEDATA:
-        fidparam = SpriteDataSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_GRAPHICS:
-        fidparam = GfxPtrSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_TEXT:
-        fidparam = TextPtrSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_INPUT:
-        fidparam = InputSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_DMAPDATA:
-        fidparam = DMapDataSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_ZMESSAGE:
-        fidparam = MessageDataSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_SHOPDATA:
-        fidparam = ShopDataSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_UNTYPED:
-        fidparam = UntypedSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_DROPSET:
-        fidparam = DropsetSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_PONDS:
-        fidparam = PondSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_WARPRING:
-        fidparam = WarpringSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_DOORSET:
-        fidparam = DoorsetSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_ZUICOLOURS:
-        fidparam = MiscColourSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_RGBDATA:
-        fidparam = RGBSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_PALETTE:
-        fidparam = PaletteSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_TUNES:
-        fidparam = TunesSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_PALCYCLE:
-        fidparam = PalCycleSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_GAMEDATA:
-        fidparam = GamedataSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    case ScriptParser::TYPE_CHEATS:
-        fidparam = CheatsSymbols::getInst().matchFunction(name, p->first.second->first);
-        break;
-    
-    default:
         p->first.first->fail();
         printErrorMsg(&host, ARROWNOTPOINTER);
         return;
     }
+    fidparam = lib->matchFunction(name, p->first.second->first);
     
     if(fidparam.first == -1 || (int)fidparam.second.size() != (isIndexed ? 3 : 2) || fidparam.second[0] != type)
     {

@@ -4,7 +4,7 @@
 #include "ParseError.h"
 #include "y.tab.hpp"
 #include "TypeChecker.h"
-#include "GlobalSymbols.h"
+#include "Library.h"
 #include "ByteCode.h"
 #include "../zsyssimple.h"
 #include <iostream>
@@ -408,46 +408,41 @@ SymbolData *ScriptParser::buildSymbolTable(AST *theAST, map<string, long> *const
     SymbolTable *t = new SymbolTable(constants);
     Scope *globalScope = new Scope(NULL);
     bool failure = false;
-    
-    //ADD LIBRARY FUNCTIONS TO THE GLOBAL SCOPE HERE
-    GlobalSymbols::getInst().addSymbolsToScope(globalScope, t);
-    FFCSymbols::getInst().addSymbolsToScope(globalScope,t);
-    ItemSymbols::getInst().addSymbolsToScope(globalScope,t);
-    ItemclassSymbols::getInst().addSymbolsToScope(globalScope,t);
-    LinkSymbols::getInst().addSymbolsToScope(globalScope,t);
-    ScreenSymbols::getInst().addSymbolsToScope(globalScope,t);
-    GameSymbols::getInst().addSymbolsToScope(globalScope,t);
-    NPCSymbols::getInst().addSymbolsToScope(globalScope,t);
-    LinkWeaponSymbols::getInst().addSymbolsToScope(globalScope,t);
-    EnemyWeaponSymbols::getInst().addSymbolsToScope(globalScope,t);
-	
-    //New Types
-	TextPtrSymbols::getInst().addSymbolsToScope(globalScope,t);
-	GfxPtrSymbols::getInst().addSymbolsToScope(globalScope,t);
-	SpriteDataSymbols::getInst().addSymbolsToScope(globalScope,t);
-	CombosPtrSymbols::getInst().addSymbolsToScope(globalScope,t);
-	AudioSymbols::getInst().addSymbolsToScope(globalScope,t);
-	DebugSymbols::getInst().addSymbolsToScope(globalScope,t);
-	NPCDataSymbols::getInst().addSymbolsToScope(globalScope,t);
-	InputSymbols::getInst().addSymbolsToScope(globalScope,t);
-	MapDataSymbols::getInst().addSymbolsToScope(globalScope,t);
-	
-	DMapDataSymbols::getInst().addSymbolsToScope(globalScope,t);
-	MessageDataSymbols::getInst().addSymbolsToScope(globalScope,t);
-	ShopDataSymbols::getInst().addSymbolsToScope(globalScope,t);
-	UntypedSymbols::getInst().addSymbolsToScope(globalScope,t);
-	
-	DropsetSymbols::getInst().addSymbolsToScope(globalScope,t);
-	PondSymbols::getInst().addSymbolsToScope(globalScope,t);
-	WarpringSymbols::getInst().addSymbolsToScope(globalScope,t);
-	DoorsetSymbols::getInst().addSymbolsToScope(globalScope,t);
-	MiscColourSymbols::getInst().addSymbolsToScope(globalScope,t);
-	RGBSymbols::getInst().addSymbolsToScope(globalScope,t);
-	PaletteSymbols::getInst().addSymbolsToScope(globalScope,t);
-	TunesSymbols::getInst().addSymbolsToScope(globalScope,t);
-	PalCycleSymbols::getInst().addSymbolsToScope(globalScope,t);
-	GamedataSymbols::getInst().addSymbolsToScope(globalScope,t);
-	CheatsSymbols::getInst().addSymbolsToScope(globalScope,t);
+
+    Library::Global::instance().writeSymbols(globalScope, t);
+
+    Library::Audio::instance().writeSymbols(globalScope, t);
+    Library::Cheat::instance().writeSymbols(globalScope, t);
+    Library::Combo::instance().writeSymbols(globalScope, t);
+    Library::Debug::instance().writeSymbols(globalScope, t);
+    Library::DoorSet::instance().writeSymbols(globalScope, t);
+    Library::DropSet::instance().writeSymbols(globalScope, t);
+    Library::DMap::instance().writeSymbols(globalScope, t);
+    Library::EnemyWeapon::instance().writeSymbols(globalScope, t);
+    Library::Ffc::instance().writeSymbols(globalScope, t);
+    Library::Game::instance().writeSymbols(globalScope, t);
+    Library::GameData::instance().writeSymbols(globalScope, t);
+    Library::Graphics::instance().writeSymbols(globalScope, t);
+    Library::Input::instance().writeSymbols(globalScope, t);
+    Library::Item::instance().writeSymbols(globalScope, t);
+    Library::ItemClass::instance().writeSymbols(globalScope, t);
+    Library::Link::instance().writeSymbols(globalScope, t);
+    Library::LinkWeapon::instance().writeSymbols(globalScope, t);
+    Library::Map::instance().writeSymbols(globalScope, t);
+    Library::Message::instance().writeSymbols(globalScope, t);
+    Library::MiscColor::instance().writeSymbols(globalScope, t);
+    Library::Npc::instance().writeSymbols(globalScope, t);
+    Library::NpcClass::instance().writeSymbols(globalScope, t);
+    Library::PalCycle::instance().writeSymbols(globalScope, t);
+    Library::Palette::instance().writeSymbols(globalScope, t);
+    Library::Pond::instance().writeSymbols(globalScope, t);
+    Library::Rgb::instance().writeSymbols(globalScope, t);
+    Library::Screen::instance().writeSymbols(globalScope, t);
+    Library::Shop::instance().writeSymbols(globalScope, t);
+    Library::Sprite::instance().writeSymbols(globalScope, t);
+    Library::Text::instance().writeSymbols(globalScope, t);
+    Library::Tune::instance().writeSymbols(globalScope, t);
+    Library::WarpRing::instance().writeSymbols(globalScope, t);
     
     //strip the global functions from the AST
     GetGlobalFuncs gc;
@@ -1064,248 +1059,41 @@ IntermediateData *ScriptParser::generateOCode(FunctionData *fdata)
     //we can now generate the code to intialize the globals
     IntermediateData *rval = new IntermediateData();
     
-    //Link against the global symbols, and add their labels
-    map<int, vector<Opcode *> > globalcode = GlobalSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = FFCSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = ItemSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = ItemclassSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = LinkSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = ScreenSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = GameSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = NPCSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = LinkWeaponSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = EnemyWeaponSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    //New Types
-    
-    globalcode = TextPtrSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = GfxPtrSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = SpriteDataSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = CombosPtrSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = AudioSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = DebugSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = NPCDataSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = InputSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = MapDataSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = DMapDataSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = MessageDataSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = ShopDataSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    
-    globalcode = UntypedSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = DropsetSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = PondSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = WarpringSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = DoorsetSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = MiscColourSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = RGBSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = PaletteSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = TunesSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = PalCycleSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = GamedataSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
-    
-    globalcode = CheatsSymbols::getInst().addSymbolsCode(lt);
-    
-    for(map<int, vector<Opcode *> >::iterator it = globalcode.begin(); it != globalcode.end(); it++)
-    {
-        rval->funcs[it->first] = it->second;
-    }
+    // Link against the global symbols, and add their labels
+    Library::Global::instance().writeCode(&lt, rval->funcs);
 
+    Library::Audio::instance().writeCode(&lt, rval->funcs);
+    Library::Cheat::instance().writeCode(&lt, rval->funcs);
+    Library::Combo::instance().writeCode(&lt, rval->funcs);
+    Library::Debug::instance().writeCode(&lt, rval->funcs);
+    Library::DoorSet::instance().writeCode(&lt, rval->funcs);
+    Library::DropSet::instance().writeCode(&lt, rval->funcs);
+    Library::DMap::instance().writeCode(&lt, rval->funcs);
+    Library::EnemyWeapon::instance().writeCode(&lt, rval->funcs);
+    Library::Ffc::instance().writeCode(&lt, rval->funcs);
+    Library::Game::instance().writeCode(&lt, rval->funcs);
+    Library::GameData::instance().writeCode(&lt, rval->funcs);
+    Library::Graphics::instance().writeCode(&lt, rval->funcs);
+    Library::Input::instance().writeCode(&lt, rval->funcs);
+    Library::Item::instance().writeCode(&lt, rval->funcs);
+    Library::ItemClass::instance().writeCode(&lt, rval->funcs);
+    Library::Link::instance().writeCode(&lt, rval->funcs);
+    Library::LinkWeapon::instance().writeCode(&lt, rval->funcs);
+    Library::Map::instance().writeCode(&lt, rval->funcs);
+    Library::Message::instance().writeCode(&lt, rval->funcs);
+    Library::MiscColor::instance().writeCode(&lt, rval->funcs);
+    Library::Npc::instance().writeCode(&lt, rval->funcs);
+    Library::NpcClass::instance().writeCode(&lt, rval->funcs);
+    Library::PalCycle::instance().writeCode(&lt, rval->funcs);
+    Library::Palette::instance().writeCode(&lt, rval->funcs);
+    Library::Pond::instance().writeCode(&lt, rval->funcs);
+    Library::Rgb::instance().writeCode(&lt, rval->funcs);
+    Library::Screen::instance().writeCode(&lt, rval->funcs);
+    Library::Shop::instance().writeCode(&lt, rval->funcs);
+    Library::Sprite::instance().writeCode(&lt, rval->funcs);
+    Library::Text::instance().writeCode(&lt, rval->funcs);
+    Library::Tune::instance().writeCode(&lt, rval->funcs);
+    Library::WarpRing::instance().writeCode(&lt, rval->funcs);
     
     //Z_message("yes");
     

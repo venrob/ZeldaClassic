@@ -8,13 +8,47 @@ src/parser/AST.cpp
 src/parser/BuildVisitors.cpp
 src/parser/ByteCode.cpp
 src/parser/DataStructs.cpp
-src/parser/GlobalSymbols.cpp
 src/parser/ParseError.cpp
 src/parser/ScriptParser.cpp
 src/parser/SymbolVisitors.cpp
 src/parser/TypeChecker.cpp
 src/parser/UtilVisitors.cpp
 
+# Library Classes
+src/parser/Library.cpp
+src/parser/library/Audio.cpp
+src/parser/library/Cheat.cpp
+src/parser/library/Combo.cpp
+src/parser/library/Debug.cpp
+src/parser/library/DMap.cpp
+src/parser/library/DoorSet.cpp
+src/parser/library/DropSet.cpp
+src/parser/library/EnemyWeapon.cpp
+src/parser/library/Ffc.cpp
+src/parser/library/Game.cpp
+src/parser/library/GameData.cpp
+src/parser/library/Global.cpp
+src/parser/library/Graphics.cpp
+src/parser/library/Input.cpp
+src/parser/library/ItemClass.cpp
+src/parser/library/Item.cpp
+src/parser/library/Link.cpp
+src/parser/library/LinkWeapon.cpp
+src/parser/library/Map.cpp
+src/parser/library/Message.cpp
+src/parser/library/MiscColor.cpp
+src/parser/library/NpcClass.cpp
+src/parser/library/Npc.cpp
+src/parser/library/PalCycle.cpp
+src/parser/library/Palette.cpp
+src/parser/library/Pond.cpp
+src/parser/library/Rgb.cpp
+src/parser/library/Screen.cpp
+src/parser/library/Shop.cpp
+src/parser/library/Sprite.cpp
+src/parser/library/Text.cpp
+src/parser/library/Tune.cpp
+src/parser/library/WarpRing.cpp
 
 ## End of ZQuest ZScript module
 )
