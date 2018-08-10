@@ -3800,3 +3800,100 @@ void do_primitives(BITMAP *targetBitmap, int type, mapscr *, int xoff, int yoff)
     color_map=&trans_table;
 }
 
+
+/* GetPixel and GetColour stuff starts here.
+//Unimplemented at present.
+
+
+int do_getpixelr(BITMAP *bmp, int *sdci, int xoffset, int yoffset)
+{
+    //sdci[1]=x
+    //sdci[2]=y
+    //sdci[3]= return val?
+
+    int x1=sdci[1]/10000;
+    int y1=sdci[2]/10000;
+    
+    return getpixel(bmp, x1+xoffset, y1+yoffset);
+}
+
+int do_getter_primitives(BITMAP *targetBitmap, int type, mapscr *, int xoff, int yoff)
+{
+    color_map = &trans_table2;
+    
+    //was this next variable ever used? -- DN
+    //bool drawsubscr=false;
+    
+    if(type > 7)
+        return -1;
+        
+    //--script_drawing_commands[][] reference--
+    //[][0]: type
+    //[][1-16]: defined by type
+    //[][17]: unused
+    //[][18]: rendertarget
+    //[][19]: unused
+    
+    // Trying to match the old behavior exactly...
+    const bool brokenOffset=get_bit(extra_rules, er_BITMAPOFFSET)!=0;
+    
+    bool isTargetOffScreenBmp = false;
+    const int type_mul_10000 = type * 10000;
+    const int numDrawCommandsToProcess = script_drawing_commands.Count();
+    int xoffset=xoff, yoffset=yoff;
+    
+    int rval = -1;
+    
+    for(int i(0); i < numDrawCommandsToProcess; ++i)
+    {
+        if(!brokenOffset)
+        {
+            xoffset = 0;
+            yoffset = 0;
+        }
+        int *sdci = &script_drawing_commands[i][0];
+        
+        if(sdci[1] != type_mul_10000)
+            continue;
+            
+        // get the correct render target, if set.
+        BITMAP *bmp = zscriptDrawingRenderTarget->GetTargetBitmap(sdci[18]);
+        
+        if(!bmp)
+        {
+			// draw to screen with subscreen offset
+			if(!brokenOffset)
+            {
+                xoffset = xoff;
+                yoffset = yoff;
+            }
+            bmp = targetBitmap;
+        }
+        else
+        {
+            //not drawing to screen, so no subscreen offset
+            if(brokenOffset)
+            {
+                xoffset = 0;
+                yoffset = 0;
+            }
+            isTargetOffScreenBmp = true;
+        }
+        
+        switch(sdci[0])
+        {
+		case GETPIXELR:
+		{
+		    rval = do_getpixelr(bmp, sdci, xoffset, yoffset);
+		}
+		break;
+		
+        }
+    }
+    
+    
+    color_map=&trans_table;
+    return rval;
+}
+
+*/
