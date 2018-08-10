@@ -118,8 +118,15 @@ byte item_messages_played[MAXITEMS]; //Each field is set when an item pickup mes
 void SetFFEngineFlag(int flag, bool v);
 void SetItemMessagePlayed(int itm);
 bool GetItemMessagePlayed(int itm);
-	
-    
+
+void do_getDMapData_dmapname(const bool v);
+void do_setDMapData_dmapname(const bool v);
+void do_getDMapData_dmaptitle(const bool v);
+void do_setDMapData_dmaptitle(const bool v);
+void do_getDMapData_dmapintro(const bool v);
+void do_setDMapData_dmapintro(const bool v);
+void do_getDMapData_music(const bool v);
+void do_setDMapData_music(const bool v);
     //virtual ~FFScript();
     
 	
@@ -151,32 +158,6 @@ bool GetItemMessagePlayed(int itm);
 		return vbound(val,0,ZS_FIX);
 	}
 	
-static void set_screenwarpReturnY(mapscr *m, int d, int value);
-static void set_screendoor(mapscr *m, int d, int value);
-static void set_screenenemy(mapscr *m, int index, int value);
-static void set_screenlayeropacity(mapscr *m, int d, int value);
-static void set_screensecretcombo(mapscr *m, int d, int value);
-static void set_screensecretcset(mapscr *m, int d, int value);
-static void set_screensecretflag(mapscr *m, int d, int value);
-static void set_screenlayermap(mapscr *m, int d, int value);
-static void set_screenlayerscreen(mapscr *m, int d, int value);
-static void set_screenpath(mapscr *m, int d, int value);
-static void set_screenwarpReturnX(mapscr *m, int d, int value);
-static void set_screenWidth(mapscr *m, int value);
-static void set_screenHeight(mapscr *m, int value);
-static void set_screenViewX(mapscr *m, int value);
-static void set_screenViewY(mapscr *m, int value);
-static void set_screenGuy(mapscr *m, int value);
-static void set_screenString(mapscr *m, int value);
-static void set_screenRoomtype(mapscr *m, int value);
-static void set_screenEntryX(mapscr *m, int value);
-static void set_screenEntryY(mapscr *m, int value);
-static void set_screenitem(mapscr *m, int value);
-static void set_screenundercombo(mapscr *m, int value);
-static void set_screenundercset(mapscr *m, int value);
-static void set_screenatchall(mapscr *m, int value);
-static long get_screenWidth(mapscr *m);
-static long get_screenHeight(mapscr *m);
 static void deallocateZScriptArray(const long ptrval);
 static int get_screen_d(long index1, long index2);
 static void set_screen_d(long index1, long index2, int val);
@@ -196,298 +177,6 @@ static bool getLinkDiagonal();
 static bool getLinkBigHitbox();
 static void setLinkBigHitbox(bool v);
 
-
-
-
-//NPCData getters One Input, One Return
-	static void getNPCData_flags(); //word
-	static void getNPCData_flags2();
-	static void getNPCData_width();
-	static void getNPCData_height();
-	static void getNPCData_s_tile();
-	static void getNPCData_s_width();
-	static void getNPCData_s_height();
-	static void getNPCData_e_tile();
-	static void getNPCData_e_width();
-	static void getNPCData_hp();
-	static void getNPCData_family();
-	static void getNPCData_cset();
-	static void getNPCData_anim();
-	static void getNPCData_e_anim();
-	static void getNPCData_frate();
-	static void getNPCData_e_frate();
-	static void getNPCData_dp();
-	static void getNPCData_wdp();
-	static void getNPCData_weapon();
-	static void getNPCData_rate();
-	static void getNPCData_hrate();
-	static void getNPCData_step();
-	static void getNPCData_homing();
-	static void getNPCData_grumble();
-	static void getNPCData_item_set();
-	static void getNPCData_bgsfx();
-	static void getNPCData_hitsfx();
-	static void getNPCData_deadsfx();
-	static void getNPCData_xofs();
-	static void getNPCData_yofs();
-	static void getNPCData_zofs();
-	static void getNPCData_hxofs();
-	static void getNPCData_hyofs();
-	static void getNPCData_hxsz();
-	static void getNPCData_hysz();
-	static void getNPCData_hzsz();
-	static void getNPCData_txsz();
-	static void getNPCData_tysz();
-	static void getNPCData_wpnsprite();
-
-	//NPCData Getters, two inouts, one return
-
-
-
-	//static void getNPCData_scriptdefence();
-	static void getNPCData_misc();//switch-case
-	static void getNPCData_defense(); //extra arg
-	static void getNPCData_SIZEflags();
-
-
-	//NPCData Setters, two inputs, no return.
-
-	static void setNPCData_flags(); //word
-	static void setNPCData_flags2();
-	static void setNPCData_width();
-	static void setNPCData_height();
-	static void setNPCData_s_tile();
-	static void setNPCData_s_width();
-	static void setNPCData_s_height();
-	static void setNPCData_e_tile();
-	static void setNPCData_e_width();
-	static void setNPCData_hp();
-	static void setNPCData_family();
-	static void setNPCData_cset();
-	static void setNPCData_anim();
-	static void setNPCData_e_anim();
-	static void setNPCData_frate();
-	static void setNPCData_e_frate();
-	static void setNPCData_dp();
-	static void setNPCData_wdp();
-	static void setNPCData_weapon();
-	static void setNPCData_rate();
-	static void setNPCData_hrate();
-	static void setNPCData_step();
-	static void setNPCData_homing();
-	static void setNPCData_grumble();
-	static void setNPCData_item_set();
-	static void setNPCData_bgsfx();
-	static void setNPCData_hitsfx();
-	static void setNPCData_deadsfx();
-	static void setNPCData_xofs();
-	static void setNPCData_yofs();
-	static void setNPCData_zofs();
-	static void setNPCData_hxofs();
-	static void setNPCData_hyofs();
-	static void setNPCData_hxsz();
-	static void setNPCData_hysz();
-	static void setNPCData_hzsz();
-	static void setNPCData_txsz();
-	static void setNPCData_tysz();
-	static void setNPCData_wpnsprite();
-
-	//NPCData Setters, three inputs, no return.
-	//static void setNPCData_scriptdefence();
-	static void setNPCData_defense(int v); //extra arg
-	static void setNPCData_SIZEflags(int v);
-	static void setNPCData_misc(int val);
-	
-	static void setNPCData_tile();
-	static void setNPCData_e_height();
-	static void getNPCData_tile();
-	static void getNPCData_e_height();
-	
-	//one input, one return
-	static void getComboData_block_enemies();
-	static void getComboData_block_hole();
-	static void getComboData_block_trigger();
-	static void getComboData_conveyor_x_speed();
-	static void getComboData_conveyor_y_speed();
-	static void getComboData_create_enemy();
-	static void getComboData_create_enemy_when();
-	static void getComboData_create_enemy_change();
-	static void getComboData_directional_change_type();
-	static void getComboData_distance_change_tiles();
-	static void getComboData_dive_item();
-	static void getComboData_dock();
-	static void getComboData_fairy();
-	static void getComboData_ff_combo_attr_change();
-	static void getComboData_foot_decorations_tile();
-	static void getComboData_foot_decorations_type();
-	static void getComboData_hookshot_grab_point();
-	static void getComboData_ladder_pass();
-	static void getComboData_lock_block_type();
-	static void getComboData_lock_block_change();
-	static void getComboData_magic_mirror_type();
-	static void getComboData_modify_hp_amount();
-	static void getComboData_modify_hp_delay();
-	static void getComboData_modify_hp_type();
-	static void getComboData_modify_mp_amount();
-	static void getComboData_modify_mp_delay();
-	static void getComboData_modify_mp_type();
-	static void getComboData_no_push_blocks();
-	static void getComboData_overhead();
-	static void getComboData_place_enemy();
-	static void getComboData_push_direction();
-	static void getComboData_push_weight();
-	static void getComboData_push_wait();
-	static void getComboData_pushed();
-	static void getComboData_raft();
-	static void getComboData_reset_room();
-	static void getComboData_save_point_type();
-	static void getComboData_screen_freeze_type();
-
-	static void getComboData_secret_combo();
-	static void getComboData_singular();
-	static void getComboData_slow_movement();
-	static void getComboData_statue_type();
-	static void getComboData_step_type();
-	static void getComboData_step_change_to();
-	static void getComboData_strike_remnants();
-	static void getComboData_strike_remnants_type();
-	static void getComboData_strike_change();
-	static void getComboData_strike_item();
-	static void getComboData_touch_item();
-	static void getComboData_touch_stairs();
-	static void getComboData_trigger_type();
-	static void getComboData_trigger_sensitive();
-	static void getComboData_warp_type();
-	static void getComboData_warp_sensitive();
-	static void getComboData_warp_direct();
-	static void getComboData_warp_location();
-	static void getComboData_water();
-	static void getComboData_whistle();
-	static void getComboData_win_game();
-	static void getComboData_block_weapon_lvl();
-
-	static void getComboData_tile();
-	static void getComboData_flip();
-
-	static void getComboData_walk();
-	static void getComboData_type();
-	static void getComboData_csets();
-	static void getComboData_foo();
-	static void getComboData_frames();
-	static void getComboData_speed();
-	static void getComboData_nextcombo();
-	static void getComboData_nextcset();
-	static void getComboData_flag();
-	static void getComboData_skipanim();
-	static void getComboData_nexttimer();
-	static void getComboData_skipanimy();
-	static void getComboData_animflags();
-
-	//two inputs, one return
-	static void getComboData_block_weapon();
-	static void getComboData_expansion();
-	static void getComboData_strike_weapons();
-
-	//two inputs, no return
-	static void setComboData_block_enemies();
-	static void setComboData_block_hole();
-	static void setComboData_block_trigger();
-	static void setComboData_conveyor_x_speed();
-	static void setComboData_conveyor_y_speed();
-	static void setComboData_create_enemy();
-	static void setComboData_create_enemy_when();
-	static void setComboData_create_enemy_change();
-	static void setComboData_directional_change_type();
-	static void setComboData_distance_change_tiles();
-	static void setComboData_dive_item();
-	static void setComboData_dock();
-	static void setComboData_fairy();
-	static void setComboData_ff_combo_attr_change();
-	static void setComboData_foot_decorations_tile();
-	static void setComboData_foot_decorations_type();
-	static void setComboData_hookshot_grab_point();
-	static void setComboData_ladder_pass();
-	static void setComboData_lock_block_type();
-	static void setComboData_lock_block_change();
-	static void setComboData_magic_mirror_type();
-	static void setComboData_modify_hp_amount();
-	static void setComboData_modify_hp_delay();
-	static void setComboData_modify_hp_type();
-	static void setComboData_modify_mp_amount();
-	static void setComboData_modify_mp_delay();
-	static void setComboData_modify_mp_type();
-	static void setComboData_no_push_blocks();
-	static void setComboData_overhead();
-	static void setComboData_place_enemy();
-	static void setComboData_push_direction();
-	static void setComboData_push_weight();
-	static void setComboData_push_wait();
-	static void setComboData_pushed();
-	static void setComboData_raft();
-	static void setComboData_reset_room();
-	static void setComboData_save_point_type();
-	static void setComboData_screen_freeze_type();
-
-	static void setComboData_secret_combo();
-	static void setComboData_singular();
-	static void setComboData_slow_movement();
-	static void setComboData_statue_type();
-	static void setComboData_step_type();
-	static void setComboData_step_change_to();
-	static void setComboData_strike_remnants();
-	static void setComboData_strike_remnants_type();
-	static void setComboData_strike_change();
-	static void setComboData_strike_item();
-	static void setComboData_touch_item();
-	static void setComboData_touch_stairs();
-	static void setComboData_trigger_type();
-	static void setComboData_trigger_sensitive();
-	static void setComboData_warp_type();
-	static void setComboData_warp_sensitive();
-	static void setComboData_warp_direct();
-	static void setComboData_warp_location();
-	static void setComboData_water();
-	static void setComboData_whistle();
-	static void setComboData_win_game();
-	static void setComboData_block_weapon_lvl();
-
-	static void setComboData_tile();
-	static void setComboData_flip();
-
-	static void setComboData_walk();
-	static void setComboData_type();
-	static void setComboData_csets();
-	static void setComboData_foo();
-	static void setComboData_frames();
-	static void setComboData_speed();
-	static void setComboData_nextcombo();
-	static void setComboData_nextcset();
-	static void setComboData_flag();
-	static void setComboData_skipanim();
-	static void setComboData_nexttimer();
-	static void setComboData_skipanimy();
-	static void setComboData_animflags();
-
-	//three inputs, no return
-	static void setComboData_block_weapon(int v);
-	static void setComboData_expansion(int v);
-	static void setComboData_strike_weapons(int v);
-	
-	//SpriteData
-	static void getSpriteDataTile();
-	static void getSpriteDataMisc();
-	static void getSpriteDataCSets();
-	static void getSpriteDataFrames();
-	static void getSpriteDataSpeed();
-	static void getSpriteDataType();
-	static void getSpriteDataString();
-	static void setSpriteDataTile();
-	static void setSpriteDataMisc();
-	static void setSpriteDataCSets();
-	static void setSpriteDataFrames();
-	static void setSpriteDataSpeed();
-	static void setSpriteDataType();
-	static void setSpriteDataString();
 
 	//Change Save/Continue and Retry screen settings:
 	static void FFSetSaveScreenSetting();
@@ -522,14 +211,7 @@ static void setLinkBigHitbox(bool v);
 	static void do_messagedata_getstring(const bool v);
 	
 	static void do_loaddmapdata(const bool v);
-	static void do_getDMapData_dmapname(const bool v);
-	static void do_setDMapData_dmapname(const bool v);
-	static void do_getDMapData_dmaptitle(const bool v);
-	static void do_setDMapData_dmaptitle(const bool v);
-	static void do_getDMapData_dmapintro(const bool v);
-	static void do_setDMapData_dmapintro(const bool v);
-	static void do_getDMapData_music(const bool v);
-	static void do_setDMapData_music(const bool v);
+
 
 #define INVALIDARRAY localRAM[0]  //localRAM[0] is never used
 
@@ -804,54 +486,9 @@ void clear_global_stack();
 void deallocateArray(const long ptrval);
 void clearScriptHelperData();
 
-void do_getscreenflags();
-void do_getscreeneflags();
-long get_screendoor(mapscr *m, int d);
-long get_screenlayeropacity(mapscr *m, int d);
-long get_screensecretcombo(mapscr *m, int d);
-long get_screensecretcset(mapscr *m, int d);
-long get_screensecretflag(mapscr *m, int d);
-long get_screenlayermap(mapscr *m, int d);
-long get_screenlayerscreen(mapscr *m, int d);
-long get_screenpath(mapscr *m, int d);
-long get_screenwarpReturnX(mapscr *m, int d);
-long get_screenwarpReturnY(mapscr *m, int d);
+//void do_getscreenflags();
+//void do_getscreeneflags();
 
-long get_screenViewX(mapscr *m);
-long get_screenGuy(mapscr *m);
-long get_screenString(mapscr *m);
-long get_screenRoomtype(mapscr *m);
-long get_screenViewY(mapscr *m);
-long get_screenEntryX(mapscr *m);
-long get_screenEntryY(mapscr *m);
-long get_screenitem(mapscr *m);
-long get_screenundercombo(mapscr *m);
-long get_screenundercset(mapscr *m);
-long get_screenatchall(mapscr *m);
-void do_getscreenLayerOpacity();
-void do_getscreenSecretCombo();
-void do_getscreenSecretCSet();
-void do_getscreenSecretFlag();
-void do_getscreenLayerMap();
-void do_getscreenLayerscreen();
-void do_getscreenPath();
-void do_getscreenWarpReturnX();
-void do_getscreenWarpReturnY();
-void do_getscreenatchall();
-void do_getscreenUndercombo();
-void do_getscreenUnderCSet();
-void do_getscreenWidth();
-void do_getscreenHeight();
-void do_getscreenViewX();
-void do_getscreenGuy();
-void do_getscreenString();
-void do_getscreenRoomType();
-void do_getscreenEntryX();
-void do_getscreenEntryY();
-void do_getscreenItem();
-void do_getscreendoor();
-long get_screennpc(mapscr *m, int index);
-void do_getscreennpc();
 
 
 
@@ -1142,27 +779,27 @@ enum ASM_DEFINE
 	RESUMESOUNDV,	//0x00FF
 	PAUSEMUSIC,		//0x0100
 	RESUMEMUSIC,	//0x0101
-	LWPNARRPTR,	//0x0102
-	EWPNARRPTR,	//0x0103
-	ITEMARRPTR,	//0x0104
-	IDATAARRPTR,	//0x0105
-	FFCARRPTR,	//0x0106
-	BOOLARRPTR,	//0x0107
-	NPCARRPTR,	//0x0108
-	LWPNARRPTR2,	//0x0109
-	EWPNARRPTR2,	//0x0110
-	ITEMARRPTR2,	//0x0111
-	IDATAARRPTR2,	//0x0112
-	FFCARRPTR2,	//0x0113
-	BOOLARRPTR2,	//0x0114
-	NPCARRPTR2,	//0x0115
-	ARRAYSIZEB,            //0x0116
-	ARRAYSIZEF,            //0x0117 
-	ARRAYSIZEN,            //0x0118
-	ARRAYSIZEL,            //0x0119
-	ARRAYSIZEE,            //0x011A
-	ARRAYSIZEI,            //0x011B
-	ARRAYSIZEID,            //0x011C
+	DEPRECATED000264,	//0x0102
+	DEPRECATED000265,	//0x0103
+	DEPRECATED000266,	//0x0104
+	DEPRECATED000267,	//0x0105
+	DEPRECATED000268,	//0x0106
+	DEPRECATED000269,	//0x0107
+	DEPRECATED000270,	//0x0108
+	DEPRECATED000271,	//0x0109
+	DEPRECATED000272,	//0x0110
+	DEPRECATED000273,	//0x0111
+	DEPRECATED000274,	//0x0112
+	DEPRECATED000275,	//0x0113
+	DEPRECATED000276,	//0x0114
+	DEPRECATED000277,	//0x0115
+	DEPRECATED000278,            //0x0116
+	DEPRECATED000279,            //0x0117 
+	DEPRECATED000280,            //0x0118
+	DEPRECATED000281,            //0x0119
+	DEPRECATED000282,            //0x011A
+	DEPRECATED000283,            //0x011B
+	DEPRECATED000284,            //0x011C
 	POLYGONR,		//0x011D
 	__RESERVED_FOR_POLYGON3DR,		//0x011E
 	__RESERVED_FOR_SETRENDERSOURCE,	//0x011F
@@ -1190,287 +827,287 @@ enum ASM_DEFINE
 	__RESERVED_FOR_CREATELWPN2VR,            //0x0135
 	__RESERVED_FOR_CREATELWPN2RV,            //0x0136
 	__RESERVED_FOR_CREATELWPN2RR,            //0x0137
-	GETSCREENDOOR, //0x0138
-	GETSCREENENEMY, //0x0139
+	DEPRECATED000001, //0x0138
+	DEPRECATED000002, //0x0139
 	PAUSESFX,
 	RESUMESFX,
 	CONTINUESFX,
 	ADJUSTSFX,
 	//__RESERVED_FOR_GETSCREENFLAG, //0x013A
 	GETITEMSCRIPT,
-	GETSCREENLAYOP,
-	GETSCREENSECCMB,
-	GETSCREENSECCST,
-	GETSCREENSECFLG,
-	GETSCREENLAYMAP,
-	GETSCREENLAYSCR,
-	GETSCREENPATH,
-	GETSCREENWARPRX,
-	GETSCREENWARPRY,
+	DEPRECATED000003,
+	DEPRECATED000004,
+	DEPRECATED000005,
+	DEPRECATED000006,
+	DEPRECATED000007,
+	DEPRECATED000008,
+	DEPRECATED000009,
+	DEPRECATED000010,
+	DEPRECATED000011,
 	TRIGGERSECRETR,
 	TRIGGERSECRETV,
 	CHANGEFFSCRIPTR,
 	CHANGEFFSCRIPTV,
 	
 	//NPCData
-	GETNPCDATAFLAGS,
-	GETNPCDATAFLAGS2,
-	GETNPCDATAWIDTH,
-	GETNPCDATAHEIGHT,
-	GETNPCDATASTILE,
-	GETNPCDATASWIDTH,
-	GETNPCDATASHEIGHT,
-	GETNPCDATAETILE,
-	GETNPCDATAEWIDTH,
-	GETNPCDATAHP,
-	GETNPCDATAFAMILY,
-	GETNPCDATACSET,
-	GETNPCDATAANIM,
-	GETNPCDATAEANIM,
-	GETNPCDATAFRAMERATE,
-	GETNPCDATAEFRAMERATE,
-	GETNPCDATATOUCHDMG,
-	GETNPCDATAWPNDAMAGE,
-	GETNPCDATAWEAPON,
-	GETNPCDATARANDOM,
-	GETNPCDATAHALT,
-	GETNPCDATASTEP,
-	GETNPCDATAHOMING,
-	GETNPCDATAHUNGER,
-	GETNPCDATADROPSET,
-	GETNPCDATABGSFX,
-	GETNPCDATADEATHSFX,
-	GETNPCDATAXOFS,
-	GETNPCDATAYOFS,
-	GETNPCDATAZOFS,
-	GETNPCDATAHXOFS,
-	GETNPCDATAHYOFS,
-	GETNPCDATAHITWIDTH,
-	GETNPCDATAHITHEIGHT,
-	GETNPCDATAHITZ,
-	GETNPCDATATILEWIDTH,
-	GETNPCDATATILEHEIGHT,
-	GETNPCDATAWPNSPRITE,
+	DEPRECATED000012,
+	DEPRECATED000013,
+	DEPRECATED000014,
+	DEPRECATED000015,
+	DEPRECATED000016,
+	DEPRECATED000017,
+	DEPRECATED000018,
+	DEPRECATED000019,
+	DEPRECATED000020,
+	DEPRECATED000021,
+	DEPRECATED000022,
+	DEPRECATED000023,
+	DEPRECATED000024,
+	DEPRECATED000025,
+	DEPRECATED000026,
+	DEPRECATED000027,
+	DEPRECATED000028,
+	DEPRECATED000029,
+	DEPRECATED000030,
+	DEPRECATED000031,
+	DEPRECATED000032,
+	DEPRECATED000033,
+	DEPRECATED000034,
+	DEPRECATED000035,
+	DEPRECATED000036,
+	DEPRECATED000037,
+	DEPRECATED000038,
+	DEPRECATED000039,
+	DEPRECATED000040,
+	DEPRECATED000041,
+	DEPRECATED000042,
+	DEPRECATED000043,
+	DEPRECATED000044,
+	DEPRECATED000045,
+	DEPRECATED000046,
+	DEPRECATED000047,
+	DEPRECATED000048,
+	DEPRECATED000049,
 	//TWO INPUTS, ONE RETURN
-	GETNPCDATASCRIPTDEF,
-	GETNPCDATADEFENSE,
-	GETNPCDATASIZEFLAG,
-	GETNPCDATAATTRIBUTE,
+	DEPRECATED000050,
+	DEPRECATED000051,
+	DEPRECATED000052,
+	DEPRECATED000053,
 
 	//TWO INPUTS, ONE RETURN
-	SETNPCDATAFLAGS,
-	SETNPCDATAFLAGS2,
-	SETNPCDATAWIDTH,
-	SETNPCDATAHEIGHT,
-	SETNPCDATASTILE,
-	SETNPCDATASWIDTH,
-	SETNPCDATASHEIGHT,
-	SETNPCDATAETILE,
-	SETNPCDATAEWIDTH,
-	SETNPCDATAHP,
-	SETNPCDATAFAMILY,
-	SETNPCDATACSET,
-	SETNPCDATAANIM,
-	SETNPCDATAEANIM,
-	SETNPCDATAFRAMERATE,
-	SETNPCDATAEFRAMERATE,
-	SETNPCDATATOUCHDMG,
-	SETNPCDATAWPNDAMAGE,
-	SETNPCDATAWEAPON,
-	SETNPCDATARANDOM,
-	SETNPCDATAHALT,
-	SETNPCDATASTEP,
-	SETNPCDATAHOMING,
-	SETNPCDATAHUNGER,
-	SETNPCDATADROPSET,
-	SETNPCDATABGSFX,
-	SETNPCDATADEATHSFX,
-	SETNPCDATAXOFS,
-	SETNPCDATAYOFS,
-	SETNPCDATAZOFS,
-	SETNPCDATAHXOFS,
-	SETNPCDATAHYOFS,
-	SETNPCDATAHITWIDTH,
-	SETNPCDATAHITHEIGHT,
-	SETNPCDATAHITZ,
-	SETNPCDATATILEWIDTH,
-	SETNPCDATATILEHEIGHT,
-	SETNPCDATAWPNSPRITE,
-	SETNPCDATAHITSFX,
-	GETNPCDATAHITSFX,
+	DEPRECATED000054,
+	DEPRECATED000055,
+	DEPRECATED000056,
+	DEPRECATED000057,
+	DEPRECATED000058,
+	DEPRECATED000059,
+	DEPRECATED000060,
+	DEPRECATED000061,
+	DEPRECATED000062,
+	DEPRECATED000063,
+	DEPRECATED000064,
+	DEPRECATED000065,
+	DEPRECATED000066,
+	DEPRECATED000067,
+	DEPRECATED000068,
+	DEPRECATED000069,
+	DEPRECATED000070,
+	DEPRECATED000071,
+	DEPRECATED000072,
+	DEPRECATED000073,
+	DEPRECATED000074,
+	DEPRECATED000075,
+	DEPRECATED000076,
+	DEPRECATED000077,
+	DEPRECATED000078,
+	DEPRECATED000079,
+	DEPRECATED000080,
+	DEPRECATED000081,
+	DEPRECATED000082,
+	DEPRECATED000300,
+	DEPRECATED000083,
+	DEPRECATED000084,
+	DEPRECATED000085,
+	DEPRECATED000086,
+	DEPRECATED000087,
+	DEPRECATED000088,
+	DEPRECATED000089,
+	DEPRECATED000090,
+	DEPRECATED000091,
+	DEPRECATED000092,
 	//ComboData
-	GCDBLOCKENEM,
-	GCDBLOCKHOLE,
-	GCDBLOCKTRIG,
-	GCDCONVEYSPDX,
-	GCDCONVEYSPDY,
-	GCDCREATEENEM,
-	GCDCREATEENEMWH,
-	GCDCREATEENEMCH,
-	GCDDIRCHTYPE,
-	GCDDISTCHTILES,
-	GCDDIVEITEM,
-	GCDDOCK,
-	GCDFAIRY,
-	GCDFFCOMBOATTRIB,
-	GCDFOOTDECOTILE,
-	GCDFOOTDECOTYPE,
-	GCDHOOKSHOTGRAB,
-	GCDLADDERPASS,
-	GCDLOCKBLOCKTYPE,
-	GCDLOCKBLOCKCHANGE,
-	GCDMAGICMIRRORTYPE,
-	GCDMODIFYHPAMOUNT,
-	GCDMODIFYHPDELAY,
-	GCDMODIFYHPTYPE,
-	GCDMODIFYMPAMOUNT,
-	GCDMODIFYMPDELAY,
-	GCDMODIFYMPTYPE,
-	GCDNOPUSHBLOCKS,
-	GCDOVERHEAD,
-	GCDPLACEENEMY,
-	GCDPUSHDIR,
-	GCDPUSHWEIGHT,
-	GCDPUSHWAIT,
-	GCDPUSHED,
-	GCDRAFT,
-	GCDRESETROOM,
-	GCDSAVEPOINT,
-	GCDSCREENFREEZE,
-	GCDSECRETCOMBO,
-	GCDSINGULAR,
-	GCDSLOWMOVE,
-	GCDSTATUE,
-	GCDSTEPTYPE,
-	GCDSTEPCHANGETO,
-	GCDSTRIKEREMNANTS,
-	GCDSTRIKEREMNANTSTYPE,
-	GCDSTRIKECHANGE,
-	GCDSTRIKECHANGEITEM,
-	GCDTOUCHITEM,
-	GCDTOUCHSTAIRS,
-	GCDTRIGGERTYPE,
-	GCDTRIGGERSENS,
-	GCDWARPTYPE,
-	GCDWARPSENS,
-	GCDWARPDIRECT,
-	GCDWARPLOCATION,
-	GCDWATER,
-	GCDWHISTLE,
-	GCDWINGAME,
-	GCDBLOCKWEAPLVL,
-	GCDTILE,
-	GCDFLIP,
-	GCDWALK,
-	GCDTYPE,
-	GCDCSETS,
-	GCDFOO,
-	GCDFRAMES,
-	GCDSPEED,
-	GCDNEXTCOMBO,
-	GCDNEXTCSET,
-	GCDFLAG,
-	GCDSKIPANIM,
-	GCDNEXTTIMER,
-	GCDSKIPANIMY,
-	GCDANIMFLAGS,
-	GCDBLOCKWEAPON,
-	GCDEXPANSION,
-	GCDSTRIKEWEAPONS,
-	SCDBLOCKENEM,
-	SCDBLOCKHOLE,
-	SCDBLOCKTRIG,
-	SCDCONVEYSPDX,
-	SCDCONVEYSPDY,
-	SCDCREATEENEM,
-	SCDCREATEENEMWH,
-	SCDCREATEENEMCH,
-	SCDDIRCHTYPE,
-	SCDDISTCHTILES,
-	SCDDIVEITEM,
-	SCDDOCK,
-	SCDFAIRY,
-	SCDFFCOMBOATTRIB,
-	SCDFOOTDECOTILE,
-	SCDFOOTDECOTYPE,
-	SCDHOOKSHOTGRAB,
-	SCDLADDERPASS,
-	SCDLOCKBLOCKTYPE,
-	SCDLOCKBLOCKCHANGE,
-	SCDMAGICMIRRORTYPE,
-	SCDMODIFYHPAMOUNT,
-	SCDMODIFYHPDELAY,
-	SCDMODIFYHPTYPE,
-	SCDMODIFYMPAMOUNT,
-	SCDMODIFYMPDELAY,
-	SCDMODIFYMPTYPE,
-	SCDNOPUSHBLOCKS,
-	SCDOVERHEAD,
-	SCDPLACEENEMY,
-	SCDPUSHDIR,
-	SCDPUSHWEIGHT,
-	SCDPUSHWAIT,
-	SCDPUSHED,
-	SCDRAFT,
-	SCDRESETROOM,
-	SCDSAVEPOINT,
-	SCDSCREENFREEZE,
-	SCDSECRETCOMBO,
-	SCDSINGULAR,
-	SCDSLOWMOVE,
-	SCDSTATUE,
-	SCDSTEPTYPE,
-	SCDSTEPCHANGETO,
-	SCDSTRIKEREMNANTS,
-	SCDSTRIKEREMNANTSTYPE,
-	SCDSTRIKECHANGE,
-	SCDSTRIKECHANGEITEM,
-	SCDTOUCHITEM,
-	SCDTOUCHSTAIRS,
-	SCDTRIGGERTYPE,
-	SCDTRIGGERSENS,
-	SCDWARPTYPE,
-	SCDWARPSENS,
-	SCDWARPDIRECT,
-	SCDWARPLOCATION,
-	SCDWATER,
-	SCDWHISTLE,
-	SCDWINGAME,
-	SCDBLOCKWEAPLVL,
-	SCDTILE,
-	SCDFLIP,
-	SCDWALK,
-	SCDTYPE,
-	SCDCSETS,
-	SCDFOO,
-	SCDFRAMES,
-	SCDSPEED,
-	SCDNEXTCOMBO,
-	SCDNEXTCSET,
-	SCDFLAG,
-	SCDSKIPANIM,
-	SCDNEXTTIMER,
-	SCDSKIPANIMY,
-	SCDANIMFLAGS,
-	GETNPCDATATILE,
-	GETNPCDATAEHEIGHT,
-	SETNPCDATATILE,
-	SETNPCDATAEHEIGHT,
+	DEPRECATED000093,
+	DEPRECATED000094,
+	DEPRECATED000095,
+	DEPRECATED000096,
+	DEPRECATED000097,
+	DEPRECATED000098,
+	DEPRECATED000099,
+	DEPRECATED000100,
+	DEPRECATED000101,
+	DEPRECATED000102,
+	DEPRECATED000103,
+	DEPRECATED000104,
+	DEPRECATED000105,
+	DEPRECATED000106,
+	DEPRECATED000107,
+	DEPRECATED000108,
+	DEPRECATED000109,
+	DEPRECATED000110,
+	DEPRECATED000111,
+	DEPRECATED000112,
+	DEPRECATED000113,
+	DEPRECATED000114,
+	DEPRECATED000115,
+	DEPRECATED000116,
+	DEPRECATED000117,
+	DEPRECATED000118,
+	DEPRECATED000119,
+	DEPRECATED000120,
+	DEPRECATED000121,
+	DEPRECATED000122,
+	DEPRECATED000123,
+	DEPRECATED000124,
+	DEPRECATED000125,
+	DEPRECATED000126,
+	DEPRECATED000127,
+	DEPRECATED000128,
+	DEPRECATED000129,
+	DEPRECATED000130,
+	DEPRECATED000131,
+	DEPRECATED000132,
+	DEPRECATED000133,
+	DEPRECATED000134,
+	DEPRECATED000135,
+	DEPRECATED000136,
+	DEPRECATED000137,
+	DEPRECATED000138,
+	DEPRECATED000139,
+	DEPRECATED000140,
+	DEPRECATED000141,
+	DEPRECATED000142,
+	DEPRECATED000143,
+	DEPRECATED000144,
+	DEPRECATED000145,
+	DEPRECATED000146,
+	DEPRECATED000147,
+	DEPRECATED000148,
+	DEPRECATED000149,
+	DEPRECATED000150,
+	DEPRECATED000151,
+	DEPRECATED000152,
+	DEPRECATED000153,
+	DEPRECATED000154,
+	DEPRECATED000155,
+	DEPRECATED000156,
+	DEPRECATED000157,
+	DEPRECATED000158,
+	DEPRECATED000159,
+	DEPRECATED000160,
+	DEPRECATED000161,
+	DEPRECATED000162,
+	DEPRECATED000163,
+	DEPRECATED000164,
+	DEPRECATED000165,
+	DEPRECATED000166,
+	DEPRECATED000167,
+	DEPRECATED000168,
+	DEPRECATED000169,
+	DEPRECATED000170,
+	DEPRECATED000171,
+	DEPRECATED000172,
+	DEPRECATED000173,
+	DEPRECATED000174,
+	DEPRECATED000175,
+	DEPRECATED000176,
+	DEPRECATED000177,
+	DEPRECATED000178,
+	DEPRECATED000179,
+	DEPRECATED000180,
+	DEPRECATED000181,
+	DEPRECATED000182,
+	DEPRECATED000183,
+	DEPRECATED000184,
+	DEPRECATED000185,
+	DEPRECATED000186,
+	DEPRECATED000187,
+	DEPRECATED000188,
+	DEPRECATED000189,
+	DEPRECATED000190,
+	DEPRECATED000191,
+	DEPRECATED000192,
+	DEPRECATED000193,
+	DEPRECATED000194,
+	DEPRECATED000195,
+	DEPRECATED000196,
+	DEPRECATED000197,
+	DEPRECATED000198,
+	DEPRECATED000199,
+	DEPRECATED000200,
+	DEPRECATED000201,
+	DEPRECATED000202,
+	DEPRECATED000203,
+	DEPRECATED000204,
+	DEPRECATED000205,
+	DEPRECATED000206,
+	DEPRECATED000207,
+	DEPRECATED000208,
+	DEPRECATED000209,
+	DEPRECATED000210,
+	DEPRECATED000211,
+	DEPRECATED000212,
+	DEPRECATED000213,
+	DEPRECATED000214,
+	DEPRECATED000215,
+	DEPRECATED000216,
+	DEPRECATED000217,
+	DEPRECATED000218,
+	DEPRECATED000219,
+	DEPRECATED000220,
+	DEPRECATED000221,
+	DEPRECATED000222,
+	DEPRECATED000223,
+	DEPRECATED000224,
+	DEPRECATED000225,
+	DEPRECATED000226,
+	DEPRECATED000227,
+	DEPRECATED000228,
+	DEPRECATED000229,
+	DEPRECATED000230,
+	DEPRECATED000231,
+	DEPRECATED000232,
+	DEPRECATED000233,
+	DEPRECATED000234,
+	DEPRECATED000235,
+	DEPRECATED000236,
+	DEPRECATED000237,
+	DEPRECATED000238,
+	DEPRECATED000239,
+	DEPRECATED000240,
+	DEPRECATED000241,
+	DEPRECATED000242,
+	DEPRECATED000243,
+	DEPRECATED000244,
+	DEPRECATED000245,
+	DEPRECATED000246,
+	DEPRECATED000247,
+	DEPRECATED000248,
+	DEPRECATED000249,
 	//SpriteData
-	GETSPRITEDATASTRING,
-	GETSPRITEDATATILE,
-	GETSPRITEDATAMISC,
-	GETSPRITEDATACGETS,
-	GETSPRITEDATAFRAMES,
-	GETSPRITEDATASPEED,
-	GETSPRITEDATATYPE,
-	SETSPRITEDATASTRING,
-	SETSPRITEDATATILE,
-	SETSPRITEDATAMISC,
-	SETSPRITEDATACSETS,
-	SETSPRITEDATAFRAMES,
-	SETSPRITEDATASPEED,
-	SETSPRITEDATATYPE,
+	DEPRECATED000250,
+	DEPRECATED000251,
+	DEPRECATED000252,
+	DEPRECATED000253,
+	DEPRECATED000254,
+	DEPRECATED000255,
+	DEPRECATED000256,
+	DEPRECATED000257,
+	DEPRECATED000258,
+	DEPRECATED000259,
+	DEPRECATED000260,
+	DEPRECATED000261,
+	DEPRECATED000262,
+	DEPRECATED000263,
 	SETCONTINUESCREEN,
 	SETCONTINUESTRING,
 	LOADNPCDATAR,
@@ -2199,44 +1836,48 @@ enum ASM_DEFINE
 #define DEBUGREFEWEAPON 0x1169
 #define DEBUGSP 0x116A
 #define DEBUGGDR 0x116B
-#define SCREENWIDTH 0x116C
-#define SCREENHEIGHT 0x116D
-#define SCREENVIEWX 0x116E
-#define SCREENVIEWY 0x116F
-#define SCREENGUY 0x1170
-#define SCREENSTRING 0x1171
-#define SCREENROOM 0x1172
-#define SCREENENTX 0x1173
-#define SCREENENTY 0x1174
-#define SCREENITEM 0x1175
-#define SCREENUNDCMB 0x1176
-#define SCREENUNDCST 0x1177
-#define SCREENCATCH 0x1178
-#define SETSCREENLAYOP 0x1179
-#define SETSCREENSECCMB 0x117A
-#define SETSCREENSECCST 0x117B
-#define SETSCREENSECFLG 0x117C
-#define SETSCREENLAYMAP 0x117D
-#define SETSCREENLAYSCR 0x117E
-#define SETSCREENPATH 0x117F
-#define SETSCREENWARPRX 0x1180
-#define SETSCREENWARPRY 0x1181
+#define DEPRECATED301 0x116C
+#define DEPRECATED302 0x116D
+#define DEPRECATED303 0x116E
+#define DEPRECATED304 0x116F
+#define DEPRECATED305 0x1170
+#define DEPRECATED306 0x1171
+#define DEPRECATED307 0x1172
+#define DEPRECATED308 0x1173
+#define DEPRECATED309 0x1174
+#define DEPRECATED310 0x1175
+#define DEPRECATED311 0x1176
+#define DEPRECATED312 0x1177
+#define DEPRECATED313 0x1178
+#define DEPRECATED314 0x1179
+#define DEPRECATED315 0x117A
+#define DEPRECATED316 0x117B
+#define DEPRECATED317 0x117C
+#define DEPRECATED318 0x117D
+#define DEPRECATED319 0x117E
+#define DEPRECATED320 0x117F
+#define DEPRECATED321 0x1180
+#define DEPRECATED322 0x1181
 #define GAMENUMMESSAGES 0x1182
 #define GAMESUBSCHEIGHT 0x1183
 #define GAMEPLAYFIELDOFS 0x1184
 #define PASSSUBOFS 0x1185
 
 //NPCData
-#define SETNPCDATASCRIPTDEF  0x1186
-#define SETNPCDATADEFENSE 0x1187
-#define SETNPCDATASIZEFLAG 0x118 
-#define SETNPCDATAATTRIBUTE 0x1189
+#define DEPRECATED323  0x1186
+#define DEPRECATED324 0x1187
+#define DEPRECATED325 0x118 
+#define DEPRECATED326 0x1189
 
-#define SCDBLOCKWEAPON 0x118A
-#define SCDSTRIKEWEAPONS 0x118B
-#define SCDEXPANSION 0x118C
+#define DEPRECATED327 0x118A
+#define DEPRECATED328 0x118B
+#define DEPRECATED329 0x118C
+
+//Game Over Screen
 #define SETGAMEOVERELEMENT 0x118D
 #define SETGAMEOVERSTRING 0x118E
+
+//Mouse
 #define MOUSEARR 0x118F
 
 //DataType spritedata sd->
@@ -2650,13 +2291,16 @@ enum ASM_DEFINE
 #define ITEMSCRIPTUID		0x1311	//byte[4]
 #define DMAPDATASIDEVIEW	0x1312	//byte[4]
 
+#define DONULL			0x1313	
+#define DEBUGD			0x1314	
+
 //bytecode
 
 //#define DMAPDATAGRAVITY 	//unimplemented
 //#define DMAPDATAJUMPLAYER 	//unimplemented
 //end vars
 
-#define NUMVARIABLES         0x1313
+#define NUMVARIABLES         0x1315
 
 // Script types
 
