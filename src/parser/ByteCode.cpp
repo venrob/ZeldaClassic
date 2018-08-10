@@ -1655,6 +1655,7 @@ string VarArgument::toString()
 	
 	case DONULL: return "DONULL";
 	case DEBUGD: return "DEBUGD";
+	case GETPIXEL: return "GETPIXEL";
     default:
     {
         sprintf(temp, "d%d", ID);

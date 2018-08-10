@@ -1052,8 +1052,9 @@ using namespace std;
 #define DMAPDATASIDEVIEW 	984
 #define DONULL 	985
 #define DEBUGD 	986
+#define GETPIXEL 	987
 
-#define LAST_BYTECODE 		987
+#define LAST_BYTECODE 		988
 
 //END OF BYTECODE
 

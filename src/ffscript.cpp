@@ -3125,6 +3125,45 @@ long get_register(const long arg)
     case PASSSUBOFS:
 	ret = passive_subscreen_offset * 10000;
     break;
+    
+    //Graphics->GetPixel
+    case GETPIXEL:
+{
+	int xoffset, yoffset;
+	int xoff; int yoff; //IDR where these are normally read off-hand. 
+	//Sticking this here to do initial tests. Will fix later. 
+	//They're for the subscreen offsets. 
+	const bool brokenOffset=get_bit(extra_rules, er_BITMAPOFFSET)!=0;
+	//bool isTargetOffScreenBmp = false;
+	BITMAP *bmp = zscriptDrawingRenderTarget->GetTargetBitmap(ri->gfxref);
+        //bmp = targetBitmap;
+        if(!bmp)
+        {
+		ret = -1; break;
+	}
+	// draw to screen with subscreen offset
+	if(!brokenOffset)
+	{
+                xoffset = xoff;
+                yoffset = yoff;
+	}
+	else
+        {
+            xoffset = 0;
+	    yoffset = 0;
+        }
+	//sdci[1]=x
+	//sdci[2]=y
+	//sdci[3]= return val?
+
+	int x1=ri->d[0]/10000;
+	int y1=ri->d[1]/10000;
+	ret = getpixel(bmp, x1+xoffset, y1+yoffset);
+	break;
+}
+
+
+
 
     
     case ZELDAVERSION:
@@ -6096,7 +6135,8 @@ void set_register(const long arg, const long value)
 		//hmm...no, this won;t return properly for modifier keys. 
 		int keyid = ri->d[0]/10000;
 		//key = vbound(key,0,n);
-		key[keyid]=((value/10000)!=0)?true:false; //It isn't possible to set keys true, because polling occurs before they are set?
+		key[keyid]=(value?1:0); //I'm an idiot. The Allegro keymap is int, not true/false. 
+		//It isn't possible to set keys true, because polling occurs before they are set?
 		//but they *can* be set false; ??? -Z
 	}
 	break;
