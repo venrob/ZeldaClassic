@@ -74,6 +74,56 @@ switch(var)
 	}
 }
 
+
+// 2.55
+
+2.55 adds some further new parser upgrades:
+
+//Typedef
+You can now define your own types using typedef using normal C syntax:
+
+typedef old_type new_type;
+
+Example: 
+typedef object ffc; //Allows you to declare object vars that are typed to ffc. 
+
+typedef const int DEFINE;
+Allows you to use the token DEFINE to declare constant ints. 
+
+//Expanded array literals:
+Array Literals of the following form may be used in lots of places,
+not just array variable declarations.
+
+{0, 1, 2}
+(int[]){0, 1, 2}
+(int[3]){}
+(int[3]){4}
+
+Example:
+RunFFCScript(script_no, (int[8]){arg1, arg2, arg3});
+
+//Mechanical and AST changes:
+
+Assignment is now an expression instead of a statement. You can theoretically assign 
+inside of a statement now.
+
+Constants are now treated as normal (unassignable) variables up through type checking. 
+If at that point the constant's value is known, it is stripped out of the AST and its 
+value is saved to the symbol table, similar to how it worked before.
+
+If the constant's value is not known at compile time, it is instead treated as a normal, 
+unassignable variable by the parser. (It still uses no stack space.)
+
+Constants can now be declared in any scope, not just global scope, and the constant is only
+valid within its scope, so you may now have constants on a per-script, or per-scope basis. 
+
+//Compiler Directives
+There's a new compile_error directive that ignores the next compiler error/warning of the 
+specified number, that you can use to suppress warnings or halts. 
+
+Syntax:
+compile_error (error_number) {error_generating_code}
+
 // New Datatypes //
 
 untyped : A special datatype that can be cast to and from any other type.
