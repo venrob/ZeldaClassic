@@ -1053,8 +1053,9 @@ using namespace std;
 #define DONULL 	985
 #define DEBUGD 	986
 #define GETPIXEL 	987
+#define DOUNTYPE 	988
 
-#define LAST_BYTECODE 		988
+#define LAST_BYTECODE 		989
 
 //END OF BYTECODE
 

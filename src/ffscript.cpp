@@ -1064,7 +1064,9 @@ long get_register(const long arg)
     case DONULL: 
 	ret = 0;
 	break;
-    
+    case DOUNTYPE:
+	ret = ri->d[0] / 10000;
+	break;
     //debug ri->d[]
     case DEBUGD:
     {
