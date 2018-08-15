@@ -474,41 +474,38 @@ public:
     {
         switch(a)
         {
-        case 0:
-            return tempenemy->dmisc1;
-            
-        case 1:
-            return tempenemy->dmisc2;
-            
-        case 2:
-            return tempenemy->dmisc3;
-            
-        case 3:
-            return tempenemy->dmisc4;
-            
-        case 4:
-            return tempenemy->dmisc5;
-            
-        case 5:
-            return tempenemy->dmisc6;
-            
-        case 6:
-            return tempenemy->dmisc7;
-            
-        case 7:
-            return tempenemy->dmisc8;
-            
-        case 8:
-            return tempenemy->dmisc9;
-            
-        case 9:
-            return tempenemy->dmisc10;
-            
-        case 10:
-            return tempenemy->dmisc11;
-            
-        case 11:
-            return tempenemy->dmisc12;
+        case 0: return tempenemy->dmisc1;
+        case 1: return tempenemy->dmisc2;
+        case 2: return tempenemy->dmisc3;
+        case 3: return tempenemy->dmisc4;
+        case 4: return tempenemy->dmisc5;
+        case 5: return tempenemy->dmisc6;
+        case 6: return tempenemy->dmisc7;
+        case 7: return tempenemy->dmisc8;
+        case 8: return tempenemy->dmisc9;
+        case 9: return tempenemy->dmisc10;
+        case 10: return tempenemy->dmisc11;
+        case 11: return tempenemy->dmisc12;
+        case 12: return tempenemy->dmisc13;
+        case 13: return tempenemy->dmisc14;
+        case 14: return tempenemy->dmisc15;
+        case 15: return tempenemy->dmisc16;
+        case 16: return tempenemy->dmisc17;
+        case 17: return tempenemy->dmisc18;
+        case 18: return tempenemy->dmisc19;
+        case 19: return tempenemy->dmisc20;
+        case 20: return tempenemy->dmisc21;
+        case 21: return tempenemy->dmisc22;
+        case 22: return tempenemy->dmisc23;
+        case 23: return tempenemy->dmisc24;
+        case 24: return tempenemy->dmisc25;
+        case 25: return tempenemy->dmisc26;
+        case 26: return tempenemy->dmisc27;
+        case 27: return tempenemy->dmisc28;
+        case 28: return tempenemy->dmisc29;
+        case 29: return tempenemy->dmisc30;
+        case 30: return tempenemy->dmisc31;
+        case 31: return tempenemy->dmisc32;
         }
         
         return 0;
@@ -1265,8 +1262,34 @@ long get_register(const long arg)
         break;
     
     case LINKHITBY:
-        ret = (int)(Link.gethitLinkUID(vbound(ri->d[0]/10000,0,3))) * 10000;
+    {
+	    int indx = ri->d[0]/10000;
+	    switch(indx)
+	    {
+		    //screen indices of objects
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		{
+			ret = (int)(Link.gethitLinkUID(indx))* 10000;
+			break;
+		}
+		//uids of objects
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		{
+			ret = (int)(Link.gethitLinkUID(vbound(ri->d[0]/10000,0,3))); //do not multiply by 10000! UIDs are not *10000!
+			break;
+			
+		}
+		default: { al_trace("Invalid index passed to Link->HitBy[%d] /n", indx); ret = -1; break; }
+	    }
         break;
+    }
+    
     case LINKDEFENCE:
         ret = (int)(Link.get_defence(vbound(ri->d[0]/10000,0,255)))* 10000;
         break;
@@ -2478,15 +2501,40 @@ long get_register(const long arg)
     
     case NPCHITBY:
     {
-        int a = ri->d[0] / 10000;
-        
-        if(GuyH::loadNPC(ri->guyref, "npc->HitBy[]") != SH::_NoError ||
-                BC::checkBounds(a, 0, 3, "npc->HitBy[]") != SH::_NoError)
-            ret = -10000;
+        int indx = ri->d[0] / 10000;
+
+        if(GuyH::loadNPC(ri->guyref, "npc->HitBy[]") != SH::_NoError )
+	{
+            ret = -10000; break;
+	}
         else
-            ret = GuyH::getNPC()->hitby[a] * 10000;
+	{
+		switch(indx)
+		{
+			//screen indixes
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+			{
+				ret = GuyH::getNPC()->hitby[indx] * 10000; // * 10000; //do not multiply by 10000! UIDs are not *10000!
+				break;
+			}
+			//UIDs
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			{
+				ret = GuyH::getNPC()->hitby[indx]; // * 10000; //do not multiply by 10000! UIDs are not *10000!
+				break;
+			}
+			default: { al_trace("Invalid index used for npc->HitBy[%d]. /n", indx); ret = -10000; break; }
+		}
+		break;
+	}
     }
-    break;
+   
     
     //2.fuure compat.
     
@@ -2642,10 +2690,27 @@ long get_register(const long arg)
         break;
         
     case LWPNSTEP:
+    {
+	    //long long val = (long long)((weapon*)s)->step * 1000000.0;
         if(0!=(s=checkLWpn(ri->lwpn,"Step")))
+            //ret=(int)((float)((weapon*)s)->step * 1000000.0);
             ret=(int)((float)((weapon*)s)->step * 1000000.0);
             
         break;
+    }
+	
+	/*
+	case LWPNSTEP:
+	{
+		long long val = ((weapon*)s)->step * 1000000.0);
+        if(0!=(s=checkLWpn(ri->lwpn,"Step")))
+            //ret=(int)((float)((weapon*)s)->step * 1000000.0);
+            ret=(int)((float)((weapon*)s)->step * 1000000.0);
+            
+        break;
+	
+	
+	*/
         
     case LWPNANGLE:
         if(0!=(s=checkLWpn(ri->lwpn,"Angle")))
@@ -3137,17 +3202,19 @@ long get_register(const long arg)
 	//They're for the subscreen offsets. 
 	const bool brokenOffset=get_bit(extra_rules, er_BITMAPOFFSET)!=0;
 	//bool isTargetOffScreenBmp = false;
+	al_trace("Getpixel: The current bitmap ID is: %d/n",ri->gfxref);
 	BITMAP *bmp = zscriptDrawingRenderTarget->GetTargetBitmap(ri->gfxref);
         //bmp = targetBitmap;
         if(!bmp)
         {
+		al_trace("Getpixel: Terminating because !bmp");
 		ret = -1; break;
 	}
 	// draw to screen with subscreen offset
 	if(!brokenOffset)
 	{
                 xoffset = xoff;
-                yoffset = yoff;
+                yoffset = yoff; //should this be -56?
 	}
 	else
         {
@@ -3157,10 +3224,17 @@ long get_register(const long arg)
 	//sdci[1]=x
 	//sdci[2]=y
 	//sdci[3]= return val?
-
+	al_trace("Getpixel: ri->d[0] is: %d/n",ri->d[0]);
+	al_trace("Getpixel: ri->d[1] is: %d/n",ri->d[1]);
 	int x1=ri->d[0]/10000;
 	int y1=ri->d[1]/10000;
-	ret = getpixel(bmp, x1+xoffset, y1+yoffset);
+	
+	al_trace("Getpixel: X is: %d/n",x1);
+	al_trace("Getpixel: Y is: %d/n",y1);
+	
+	ret = getpixel(bmp, x1+xoffset, y1+yoffset); //This is a palette index value. 
+	al_trace("Getpixel: Returning a palette index value of: %d/n",ret);
+	al_trace("I'm not yet sure if the PALETTE type will use a value div/mult by 10000./n");
 	break;
 }
 
@@ -5806,8 +5880,35 @@ void set_register(const long arg, const long value)
         break;
     
     case LINKHITBY:
-	Link.sethitLinkUID(vbound(ri->d[0]/10000,0,255), vbound((value/10000), 0, 255));
-        break;
+    {
+	int indx = ri->d[0]/10000;
+	switch(indx)
+	{
+		//screen index objects
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		{
+			Link.sethitLinkUID(indx, vbound((value/10000), 0, 255)); //Why the Flidd did I vbound this? UIDs are LONGs, with a starting value of 0.0001. Why did I allow it, in fact? -Z
+			break;
+		}
+		//UIDs
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		{
+			Link.sethitLinkUID(indx, vbound((value), 0, 255)); //Why the Flidd did I vbound this? UIDs are LONGs, with a starting value of 0.0001. Why did I allow it, in fact? -Z
+			break;
+		}
+		default: { al_trace("Invalid index passed to Link->HitBy[%d] /n", indx); break; }
+	}
+	break;
+    }
+		
+		
+		
     case LINKDEFENCE:
 	Link.set_defence(vbound(ri->d[0]/10000,0,255), ((char)vbound((value/10000), 0, 255)));
         break;
@@ -7614,13 +7715,35 @@ if(GuyH::loadNPC(ri->guyref, str) == SH::_NoError) \
     
     case NPCHITBY:
     {
-	long a = ri->d[0] / 10000;
+	long indx = ri->d[0] / 10000;
         
-        if(GuyH::loadNPC(ri->guyref, "npc->HitBy[]") == SH::_NoError &&
-                BC::checkBounds(a, 0, (edefLAST255-1), "npc->HitBy[]") == SH::_NoError)
-            GuyH::getNPC()->hitby[a] = vbound((value / 10000),0,255);
-    }    
-    break;
+        if(GuyH::loadNPC(ri->guyref, "npc->HitBy[]") == SH::_NoError)
+	{
+		switch(indx)
+		{
+			//screen index objects
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+			{
+				GuyH::getNPC()->hitby[indx] = vbound((value / 10000),0,255); //Once again, why did I vbound this, and why did I allow it to be written? UIDs are LONGs, with a starting value of 0.0001. -Z
+    				break;
+			}
+			//UIDs
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			{
+				GuyH::getNPC()->hitby[indx] = value; //Once again, why did I vbound this, and why did I allow it to be written? UIDs are LONGs, with a starting value of 0.0001. -Z
+    				break;
+			}
+			default: al_trace("Invalid index used with npc->hitBy[%d]. /n", indx); break;
+		}
+	}
+	break;
+    }
     
     //2.future compat. -Z
     
@@ -7671,6 +7794,23 @@ if(GuyH::loadNPC(ri->guyref, str) == SH::_NoError) \
 		case 12: GuyH::getNPC()->dmisc13 = value / 10000; break;
 		case 13: GuyH::getNPC()->dmisc14 = value / 10000; break;
 		case 14: GuyH::getNPC()->dmisc15 = value / 10000; break;
+		case 15: GuyH::getNPC()->dmisc16 = value / 10000; break;
+		case 16: GuyH::getNPC()->dmisc17 = value / 10000; break;
+		case 17: GuyH::getNPC()->dmisc18 = value / 10000; break;
+		case 18: GuyH::getNPC()->dmisc19 = value / 10000; break;
+		case 19: GuyH::getNPC()->dmisc20 = value / 10000; break;
+		case 20: GuyH::getNPC()->dmisc21 = value / 10000; break;
+		case 21: GuyH::getNPC()->dmisc22 = value / 10000; break;
+		case 22: GuyH::getNPC()->dmisc23 = value / 10000; break;
+		case 23: GuyH::getNPC()->dmisc24 = value / 10000; break;
+		case 24: GuyH::getNPC()->dmisc25 = value / 10000; break;
+		case 25: GuyH::getNPC()->dmisc26 = value / 10000; break;
+		case 26: GuyH::getNPC()->dmisc27 = value / 10000; break;
+		case 27: GuyH::getNPC()->dmisc28 = value / 10000; break;
+		case 28: GuyH::getNPC()->dmisc28 = value / 10000; break;
+		case 29: GuyH::getNPC()->dmisc30 = value / 10000; break;
+		case 30: GuyH::getNPC()->dmisc31 = value / 10000; break;
+		case 31: GuyH::getNPC()->dmisc32 = value / 10000; break;
 		default: break;
 	}
 
