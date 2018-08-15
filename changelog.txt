@@ -1,5 +1,28 @@
 //2.54 Changes
 
+//Alpha 32
+Temporarily rename some internal allegro functions so they don't
+	conflict with some new functions that glibc defines. ( grayswandir, 15th August, 2018 )
+Fixed return values and setter values (div/mult by 10000) for npc->HitBy[] and Link->HitBy[] based on index of the array. ( 15th August, 2018 )
+Fixed npc->Attributes. it was a size of 14, not 32. ( 15th August, 2018 )
+Fixed datatype->Misc[]. The values above index 15 weren't set up properly, or initialised. ( 15th August, 2018 )
+Fixed typecast for npc->HitBy[]. It's now 'untyped'. ( 15th August, 2018 )
+Revised Untype() function, and NULL() function.  ( ZoriaRPG, 11th August, 2018 )
+Added NULL, Null, and Null() as alternatives to NULL() ( ZoriaRPG, 11th August, 2018 )
+Added expanded ZScript docs. ( ZoriaRPG, 10th August, 2018 )
+Added bitmap->Getpixel(x,y) ( ZoriaRPG, 10th August, 2018 )
+Removed deprecated functions carried over from '2.future' and old 2.54 alphas that 
+	have been replaced by datatype members. ( ZoriaRPG, 10th August, 2018 )
+
+
+//Alpha 31
+Added mock-up layout for revised Enemy Editor ( ZoriaRPG, 65th April, 2018 )
+Segregated Enemy Editor Defences ( ZoriaRPG, 16th April, 2018 )
+Moved Enemy Size tab into basic properties tab as a sub-tab. ( ZoriaRPG, 15th April, 2018 )
+Fixed enemy editor defence sub-tabs. ( ZoriaRPG, 15th April, 2018 )
+Fixed default enemy sounds. ( ZoriaRPG, 15th April, 2018 )
+
+
 //Alpha 30
 Added cascading tabs to the Enemy Editor:
 	The Defs 1, Defs 2, and Defs 3 tabs have been moved 
