@@ -1,6 +1,33 @@
 //2.54 Changes
 
 //Alpha 32
+
+npc->Attributes[32], itemdata->Attributes[32], and npcdata->Attributes[32] are now untyped, for the same reason as Misc[].
+
+npc->HitBy[10] now has indices for object UIDs. The valid indices are:
+#define HIT_BY_NPC 0
+#define HIT_BY_EWEAPON 1
+#define HIT_BY_LWEAPON 2
+#define HIT_BY_FFC 3
+
+#define HIT_BY_NPC_UID 4
+#define HIT_BY_EWEAPON_UID 5
+#define HIT_BY_LWEAPON_UID 6
+#define HIT_BY_FFC_UID 7
+
+#define HIT_BY_COMBO 8
+#define HIT_BY_MAPFLAG 9
+
+Obviously, only indices 2, and 6 are in use at this time. 
+	Some melee weapons do not register a hit at this time. 
+	
+When a weapon hits an npc, both the screen index, and the script UID are stored in npc->HitBy[], in indices
+2 and 6 respectively. I tried to apply a similar change to Link, but this wasn't stable, so I reverted it for now. 
+( ZoriaRPG, 16th August, 2018 )
+	
+Resized npc->HitBy[] and Link->HitBy[] to a size of [10] each. ( ZoriaRPG, 16th August, 2018 )
+
+
 Temporarily rename some internal allegro functions so they don't
 	conflict with some new functions that glibc defines. ( grayswandir, 15th August, 2018 )
 Fixed return values and setter values (div/mult by 10000) for npc->HitBy[] and Link->HitBy[] based on index of the array. ( 15th August, 2018 )

@@ -1,5 +1,5 @@
-// 2.54 Alpha 31
-///Re v.11082018
+// 2.54 Alpha 32
+///Rev.16082018
 
 /////////////////
 ///  ZScript  ///
@@ -75,54 +75,56 @@ switch(var)
 }
 
 
-// 2.55
+	// BEGIN 2.55 SPECIFIC
 
-2.55 adds some further new parser upgrades:
+	2.55 adds some further new parser upgrades:
 
-//Typedef
-You can now define your own types using typedef using normal C syntax:
+	//Typedef
+	You can now define your own types using typedef using normal C syntax:
 
-typedef old_type new_type;
+	typedef old_type new_type;
 
-Example: 
-typedef object ffc; //Allows you to declare object vars that are typed to ffc. 
+	Example: 
+	typedef object ffc; //Allows you to declare object vars that are typed to ffc. 
 
-typedef const int DEFINE;
-Allows you to use the token DEFINE to declare constant ints. 
+	typedef const int DEFINE;
+	Allows you to use the token DEFINE to declare constant ints. 
 
-//Expanded array literals:
-Array Literals of the following form may be used in lots of places,
-not just array variable declarations.
+	//Expanded array literals:
+	Array Literals of the following form may be used in lots of places,
+	not just array variable declarations.
 
-{0, 1, 2}
-(int[]){0, 1, 2}
-(int[3]){}
-(int[3]){4}
+	{0, 1, 2}
+	(int[]){0, 1, 2}
+	(int[3]){}
+	(int[3]){4}
 
-Example:
-RunFFCScript(script_no, (int[8]){arg1, arg2, arg3});
+	Example:
+	RunFFCScript(script_no, (int[8]){arg1, arg2, arg3});
 
-//Mechanical and AST changes:
+	//Mechanical and AST changes:
 
-Assignment is now an expression instead of a statement. You can theoretically assign 
-inside of a statement now.
+	Assignment is now an expression instead of a statement. You can theoretically assign 
+	inside of a statement now.
 
-Constants are now treated as normal (unassignable) variables up through type checking. 
-If at that point the constant's value is known, it is stripped out of the AST and its 
-value is saved to the symbol table, similar to how it worked before.
+	Constants are now treated as normal (unassignable) variables up through type checking. 
+	If at that point the constant's value is known, it is stripped out of the AST and its 
+	value is saved to the symbol table, similar to how it worked before.
 
-If the constant's value is not known at compile time, it is instead treated as a normal, 
-unassignable variable by the parser. (It still uses no stack space.)
+	If the constant's value is not known at compile time, it is instead treated as a normal, 
+	unassignable variable by the parser. (It still uses no stack space.)
 
-Constants can now be declared in any scope, not just global scope, and the constant is only
-valid within its scope, so you may now have constants on a per-script, or per-scope basis. 
+	Constants can now be declared in any scope, not just global scope, and the constant is only
+	valid within its scope, so you may now have constants on a per-script, or per-scope basis. 
 
-//Compiler Directives
-There's a new compile_error directive that ignores the next compiler error/warning of the 
-specified number, that you can use to suppress warnings or halts. 
+	//Compiler Directives
+	There's a new compile_error directive that ignores the next compiler error/warning of the 
+	specified number, that you can use to suppress warnings or halts. 
 
-Syntax:
-compile_error (error_number) {error_generating_code}
+	Syntax:
+	compile_error (error_number) {error_generating_code}
+
+//! END 2.55 SPECIFIC
 
 // New Datatypes //
 
@@ -701,8 +703,7 @@ int AClock
 /////////////
 
 untyped Attributes[32];
-* !! Did I remember to untype Attributes[]?
-* Epanded to size [32].
+* Epanded to size [32], and made datatype-insensitive.
 
 int WeaponSprite;
 * The sprite (Quest->Graphics->Sprites->Weapons) used to draw the weapon fired by the npc.
@@ -719,8 +720,40 @@ bool Shield[5];
 bool Core;
 * This returns true if the NPC is the core segment of a segmented engine enemy.
 
-int HitBy[4];
+**************************************************************
+
+untyped HitBy[10];
 * Stores the ID/UIDs of objects that hurt the npc this frame.
+* Indices:
+
+* The first four indices are for the *screen index* of objects:
+
+* Description		Index	Status
+* HIT_BY_NPC 		[0] 	Not used at this time. 
+* HIT_BY_EWEAPON 	[1] 	Not used at this time. 
+* HIT_BY_LWEAPON 	[2]	In use by the engine.
+* HIT_BY_FFC 		[3] 	Not used at this time. 
+
+* The next four, are for the FFCore 'script' UIDs of objects:
+
+* Description		Index	Status
+* HIT_BY_NPC_UID 	[4] 	Not used at this time. 
+* HIT_BY_EWEAPON_UID 	[5] 	Not used at this time. 
+* HIT_BY_LWEAPON_UID 	[6]	In use by the engine.
+* HIT_BY_FFC_UID 	[7] 	Not used at this time. 
+
+* The last two, are reserved for special damage-object types. 
+
+* Description		Index	Status
+* HIT_BY_COMBO 		[8]	Not used at this time. 
+* HIT_BY_MAPFLAG 	[9] 	Not used at this time. 
+
+* These indices are uniform across all HitBy[] array members, for any datatype with that member. 
+
+* Some lweapons, notably some melee weapons such as swords (but not sword beams), and boomerangs
+* are not yet implemented in this mechanic. 
+
+**************************************************************
 
 int Defense[42];
 int Defense[MAX_DEFENSE];		
@@ -783,8 +816,42 @@ untyped Misc[32];
 * Epanded from a size of [16] to [32]. An array of 32 miscellaneous variables for you to use as you please.
 * The Misc[] array now supports all datatypes, and has been expanded to a size of [32].
 
-int HitBy[4] {npc, eweapon };
+**************************************************************
+
+untyped HitBy[10];
 * Stores the ID/UIDs of objects that hurt the Link this frame.
+
+* Indices:
+
+* The first four indices are for the *screen index* of objects:
+
+* Description		Index	Status
+* HIT_BY_NPC 		[0] 	In use by the engine. 
+* HIT_BY_EWEAPON 	[1] 	In use by the engine.
+* HIT_BY_LWEAPON 	[2]	Not used at this time.
+* HIT_BY_FFC 		[3] 	Not used at this time. 
+
+* The next four, are for the FFCore 'script' UIDs of objects:
+
+* Description		Index	Status
+* HIT_BY_NPC_UID 	[4] 	Not used at this time. 
+* HIT_BY_EWEAPON_UID 	[5] 	Not used at this time. 
+* HIT_BY_LWEAPON_UID 	[6]	Not used at this time.
+* HIT_BY_LWEAPON_UID 	[6]	Not used at this time.
+* HIT_BY_FFC_UID 	[7] 	Not used at this time. 
+
+* The last two, are reserved for special damage-object types. 
+
+* Description		Index	Status
+* HIT_BY_COMBO 		[8]	Not used at this time. 
+* HIT_BY_MAPFLAG 	[9] 	Not used at this time. 
+
+* These indices are uniform across all HitBy[] array members, for any datatype with that member. 
+
+* Some lweapons, notably some melee weapons such as swords (but not sword beams), and boomerangs
+* are not yet implemented in this mechanic. 
+
+**************************************************************
 
 int Stun;
 * Returns the number of frames for which Link will; remain stunned.
@@ -919,6 +986,7 @@ int MinHearts;
 
 float Attributes[10] 
 * An array of ten integers that correspond to the ten <Misc> text entries on the item editor Data tab.
+* Now datatype-insensitive.
 
 int Sprites[10]
 * An array of ten integers that correspond to the ten sprite pulldowns on the item editor Action tab.
@@ -1970,7 +2038,7 @@ int SizeFlag[2];
 * 	are rendered by the engine.
 
 int Attributes[32];
-* The 'Misc. Attributes' of the enemy.
+* The 'Misc. Attributes' of the enemy; now 32 of these; and datatype-insensitive.
 
 bool Shield[5];
 * The shield status of the enemy.
