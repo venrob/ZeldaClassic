@@ -133,7 +133,7 @@ void LinkClass::ClearhitLinkUIDs()
 		// 1. If set by internal mecanics, it has its value that you can read by script, before waitdraw--this part works at present.
 		// 2. FFCs can read it before Waitframe. --same.
 		// 3. After Waitframe(), it is wiped by the ZC Engine to 0. --I cannot get this to happen without breaking 1 and 2. 
-	for ( int q = 0; q < 4; q++ ) 	
+	for ( int q = 0; q < NUM_HIT_TYPES_USED; q++ ) 	
 	{
 		/*
 		if ( lastHitBy[q][1] == (frame-1) ) //Verify if this is needed at all now. 
@@ -150,6 +150,36 @@ void LinkClass::ClearhitLinkUIDs()
 void LinkClass::sethitLinkUID(int type, int screen_index)
 {
 	lastHitBy[type][0] = screen_index;
+	/* CAUSED RANDOM WARPING?>! -Z
+	switch (type)
+	{
+		//Let's try to store the 'script_UID' for any object that hits Link, too! -Z (16 Aug, 2018)
+		case HIT_BY_NPC:
+		{ 
+			enemy *enem = ((enemy*)guys.spr(screen_index));
+			lastHitBy[HIT_BY_NPC_UID][0] = enem->script_UID; 
+			break; 
+		}
+		case HIT_BY_EWEAPON:
+		{ 
+			weapon *ew = ((weapon *)Ewpns.spr(screen_index));
+			
+			lastHitBy[HIT_BY_EWEAPON_UID][0] = ew->script_UID; 
+			break; 
+		}
+			
+		case HIT_BY_LWEAPON:
+		{ 
+			weapon *lw = ((weapon *)Lwpns.spr(screen_index));
+			
+			lastHitBy[HIT_BY_LWEAPON_UID][0] = lw->script_UID; 
+			break; 
+		}
+		
+		default: break;
+	}
+	*/
+		
 	//lastHitBy[type][1] = frame;
 	/* Let's figure out how to clear this...
 	if ( global_wait ) lastHitBy[type] = screen_index;
