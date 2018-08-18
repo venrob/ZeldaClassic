@@ -5412,7 +5412,7 @@ static AccessorTable GraphicsTable[] =
 	{ "Zap",                 ScriptParser::TYPE_VOID,          FUNCTION,     0,                    1,      {  ScriptParser::TYPE_BOOL,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
    
 	{ "Greyscale",                 ScriptParser::TYPE_VOID,          FUNCTION,     0,                    1,      {  ScriptParser::TYPE_BOOL,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
-        { "GetPixel",               ScriptParser::TYPE_UNTYPED,         GETTER,       GETPIXEL,            1,      {  ScriptParser::TYPE_GRAPHICS,       ScriptParser::TYPE_FLOAT,                                ScriptParser::TYPE_FLOAT,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+        { "GetPixel",               ScriptParser::TYPE_UNTYPED,         FUNCTION,       0,            1,      {  ScriptParser::TYPE_GRAPHICS,       ScriptParser::TYPE_FLOAT,                                ScriptParser::TYPE_FLOAT,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     //This eventually needs to be typed to rgbdata. 
     { "",                      -1,                               -1,           -1,                   -1,      { -1,                               -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } }
 };
@@ -5427,6 +5427,25 @@ map<int, vector<Opcode *> > GfxPtrSymbols::addSymbolsCode(LinkTable &lt)
 {
    map<int, vector<Opcode *> > rval = LibrarySymbols::addSymbolsCode(lt);
     int id=-1;
+	
+	//int LoadMapData(mapdata, int map,int scr)
+    {
+        int id = memberids["GetPixel"];
+        int label = lt.functionToLabel(id);
+        vector<Opcode *> code;
+        //pop off the params
+        Opcode *first = new OPopRegister(new VarArgument(INDEX2));
+        first->setLabel(label);
+        code.push_back(first);
+        code.push_back(new OPopRegister(new VarArgument(INDEX)));
+        //pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new OSetRegister(new VarArgument(EXP1), new VarArgument(GETPIXEL)));
+        code.push_back(new OPopRegister(new VarArgument(EXP2)));
+        code.push_back(new OGotoRegister(new VarArgument(EXP2)));
+        rval[label] = code;
+    }
+		
 	{
         id = memberids["Wavy"];
         int label = lt.functionToLabel(id);

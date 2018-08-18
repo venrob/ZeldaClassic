@@ -2197,6 +2197,7 @@ string OLoadMapDataRegister::toString()
 {
     return "LOADMAPDATAR " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
 }
+
 string OLoadSpriteDataRegister::toString()
 {
     return "LOADSPRITEDATAR " + getArgument()->toString();
