@@ -1062,8 +1062,16 @@ long get_register(const long arg)
 	ret = 0;
 	break;
     case DOUNTYPE:
-	ret = ri->d[0] / 10000;
+    {
+	al_trace("Debug->Umtype() ri->d[0] is: %d /n", ri->d[0]);
+	al_trace("Debug->Umtype() ri->d[1] is: %d /n", ri->d[1]);
+	al_trace("Debug->Umtype() ri->d[2] is: %d /n", ri->d[2]);
+	al_trace("Debug->Umtype() ri->d[3] is: %d /n", ri->d[3]);
+	al_trace("Debug->Umtype() ri->d[4] is: %d /n", ri->d[4]);
+	//ret = ri->d[1];
+	    ret = -10000;
 	break;
+    }
     //debug ri->d[]
     case DEBUGD:
     {
