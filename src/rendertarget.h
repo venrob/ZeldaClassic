@@ -26,9 +26,11 @@ public:
     static const int BitmapWidth = 512;
     static const int BitmapHeight = 512;
     
+    
 protected:
-    BITMAP* _bitmap[ MaxBuffers ];
+    
     int _current_target;
+    BITMAP* _bitmap[ MaxBuffers ];
     
 public:
     ZScriptDrawingRenderTarget() : _current_target(-1)

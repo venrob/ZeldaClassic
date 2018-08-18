@@ -119,7 +119,7 @@ void SetFFEngineFlag(int flag, bool v);
 void SetItemMessagePlayed(int itm);
 bool GetItemMessagePlayed(int itm);
 
-long do_getpixel();
+int do_getpixel();
 
 void do_getDMapData_dmapname(const bool v);
 void do_setDMapData_dmapname(const bool v);
