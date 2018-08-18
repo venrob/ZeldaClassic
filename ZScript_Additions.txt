@@ -182,13 +182,6 @@ int SizeOfArray(bool array[]);
 void Trace(untyped)
 * The Trace() instruction now supports all datatypes.
 
-untyped NULL()
-* You may assign this function to any datatype to clear it to NULL.
-* Example:
-lweapon l = Screen->LoadLWeapon(16);
-l->Dir = DIR_UP;
-l = NULL(); // Clear the pointer to NULL.
-
 untyped Untype(any)
 * Converts the value of any datatype to another, similar to typecasting.
 * Example:
@@ -2191,6 +2184,16 @@ t/b/a
 /////////////////
 ///  Debug->  ///
 /////////////////
+
+untyped NULL;
+untyped Null;
+untyped Null();
+untyped NULL();
+* You may assign this function to any datatype to clear it to NULL.
+* Example:
+lweapon l = Screen->LoadLWeapon(16);
+l->Dir = DIR_UP;
+l = NULL(); // Clear the pointer to NULL.
 
 float D[256];
 * This is the value of the ri->d[] registers. 
