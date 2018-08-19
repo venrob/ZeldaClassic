@@ -1,5 +1,5 @@
 // 2.54 Alpha 32
-///Rev.16082018
+///Rev.19082018
 
 /////////////////
 ///  ZScript  ///
@@ -2106,7 +2106,8 @@ t/b/a
 ////////////////
 
 float GetPixel(int x, int y);
-* Returns the rgbdata value of a pixel on the current bitmap pointer (set by Game->LoadBitmapID).
+* Returns the palette index value of a pixel on the current bitmap pointer (set by Game->LoadBitmapID).
+
 // Load()
 // Create()
 // Destroy()
@@ -2117,6 +2118,8 @@ float GetPixel(int x, int y);
 // int Height (read-only)
 // int Depth (read-only)
 // Transform() 
+// RenderTo(target, mode, args[])
+// RenderFrom(target, mode, args[])
 
 
 t/b/a

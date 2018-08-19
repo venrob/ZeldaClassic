@@ -1,5 +1,14 @@
 //2.54 Changes
 
+//Alpha 33
+
+Fixed *bitmap->GetPixel(int x, int y). It now work swith the screen (and offset flags),
+	and with off-screen bitmaps. ( ZoriaRPG, 18th August, 2018 )
+
+Fixed Untype(), moved Null() to Debug-> pointer as:
+	Debug->NULL(), Debug->Null(), Debug->NULL, and Debug->Null ( ZoriaRPG, 18th August, 2018 )
+
+
 //Alpha 32
 
 npc->Attributes[32], itemdata->Attributes[32], and npcdata->Attributes[32] are now untyped, for the same reason as Misc[].
