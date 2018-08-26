@@ -8370,13 +8370,74 @@ int next_press_key()
     //	return (readkey()>>8);
 }
 
+#define MAX_BUTTONS_CHK		13 // button range 0 - 12
+
 int next_press_btn()
 {
     clear_keybuf();
-    /*bool b[joy[joystick_index].num_buttons+1];
+    bool b[MAX_BUTTONS_CHK];
     
-    for(int i=1; i<=joy[joystick_index].num_buttons; i++)
-        b[i]=joybtn(i);*/
+    for(int i=1; i<MAX_BUTTONS_CHK; i++)
+        b[i]=joybtn(i);
+        
+    //first, we need to wait until they're pressing no buttons
+    for(;;)
+    {
+        if(keypressed())
+        {
+            switch(readkey()>>8)
+            {
+            case KEY_ESC:
+                return -1;
+                
+            case KEY_SPACE:
+                return 0;
+            }
+        }
+        
+        poll_joystick();
+        bool done = true;
+        
+        for(int i=1; i<MAX_BUTTONS_CHK; i++)
+        {
+            if(joybtn(i)) done = false;
+        }
+        
+        if(done) break;
+    }
+    
+    //now, we need to wait for them to press any button
+    for(;;)
+    {
+        if(keypressed())
+        {
+            switch(readkey()>>8)
+            {
+            case KEY_ESC:
+                return -1;
+                
+            case KEY_SPACE:
+                return 0;
+            }
+        }
+        
+        poll_joystick();
+        
+        for(int i=1; i<MAX_BUTTONS_CHK; i++)
+        {
+            if(joybtn(i)) return i;
+        }
+    }
+}
+
+/*
+int next_press_btn()
+{
+    clear_keybuf();
+    //bool b[joy[joystick_index].num_buttons+1];
+    
+    //for(int i=1; i<=joy[joystick_index].num_buttons; i++)
+    //    b[i]=joybtn(i);
         
     //first, we need to wait until they're pressing no buttons
     for(;;)
@@ -8427,6 +8488,8 @@ int next_press_btn()
         }
     }
 }
+*/
+
 
 static bool rButton(bool(proc)(),bool &flag)
 {
@@ -8457,6 +8520,7 @@ bool button_hold[18] = {false, false, false, false, false, false, false, false, 
 #define STICK_2_Y joy[joystick_index].stick[js_stick_2_y_stick].axis[js_stick_2_y_axis]
 #define STICK_PRECISION   56 //define your own sensitivity
 
+/*
 void load_control_state()
 {
     control_state[0]=key[DUkey]||(analog_movement ? STICK_1_Y.d1 || STICK_1_Y.pos - js_stick_1_y_offset < -STICK_PRECISION : joybtn(DUbtn));
@@ -8500,6 +8564,57 @@ void load_control_state()
     button_press[15]=rButton(AxisDown,button_hold[15]);
     button_press[16]=rButton(AxisLeft,button_hold[16]);
     button_press[17]=rButton(AxisRight,button_hold[17]);
+}
+*/
+
+
+void load_control_state()
+{
+#define STICK_PRECISION   56 //define your own sensitivity
+
+    control_state[0]=key[DUkey]||joy[joystick_index].stick[0].axis[1].d1||joy[joystick_index].stick[0].axis[1].pos< -STICK_PRECISION;
+    control_state[1]=key[DDkey]||joy[joystick_index].stick[0].axis[1].d2||joy[joystick_index].stick[0].axis[1].pos > STICK_PRECISION;
+    control_state[2]=key[DLkey]||joy[joystick_index].stick[0].axis[0].d1||joy[joystick_index].stick[0].axis[0].pos< -STICK_PRECISION;
+    control_state[3]=key[DRkey]||joy[joystick_index].stick[0].axis[0].d2||joy[joystick_index].stick[0].axis[0].pos > STICK_PRECISION;
+    control_state[4]=key[Akey]||joybtn(Abtn);
+    control_state[5]=key[Bkey]||joybtn(Bbtn);
+    control_state[6]=key[Skey]||joybtn(Sbtn);
+    control_state[7]=key[Lkey]||joybtn(Lbtn);
+    control_state[8]=key[Rkey]||joybtn(Rbtn);
+    control_state[9]=key[Pkey]||joybtn(Pbtn);
+    control_state[10]=key[Exkey1]||joybtn(Exbtn1);
+    control_state[11]=key[Exkey2]||joybtn(Exbtn2);
+    control_state[12]=key[Exkey3]||joybtn(Exbtn3);
+    control_state[13]=key[Exkey4]||joybtn(Exbtn4);
+    
+    if(num_joysticks != 0)
+    {
+        //this is a workaround to a really stupid allegro bug.
+        control_state[14]= joy[joystick_index].stick[1].axis[0].pos - 128 < -STICK_PRECISION;
+        control_state[15]= joy[joystick_index].stick[1].axis[0].pos - 128 > STICK_PRECISION;
+        control_state[16]= joy[joystick_index].stick[0].axis[2].pos < -STICK_PRECISION;
+        control_state[17]= joy[joystick_index].stick[0].axis[2].pos > STICK_PRECISION;
+    }
+    
+    button_press[0]=rButton(Up,button_hold[0]);
+    button_press[1]=rButton(Down,button_hold[1]);
+    button_press[2]=rButton(Left,button_hold[2]);
+    button_press[3]=rButton(Right,button_hold[3]);
+    button_press[4]=rButton(cAbtn,button_hold[4]);
+    button_press[5]=rButton(cBbtn,button_hold[5]);
+    button_press[6]=rButton(cSbtn,button_hold[6]);
+    button_press[7]=rButton(cLbtn,button_hold[7]);
+    button_press[8]=rButton(cRbtn,button_hold[8]);
+    button_press[9]=rButton(cPbtn,button_hold[9]);
+    button_press[10]=rButton(cEx1btn,button_hold[10]);
+    button_press[11]=rButton(cEx2btn,button_hold[11]);
+    button_press[12]=rButton(cEx3btn,button_hold[12]);
+    button_press[13]=rButton(cEx4btn,button_hold[13]);
+    button_press[14]=rButton(AxisUp,button_hold[14]);
+    button_press[15]=rButton(AxisDown,button_hold[15]);
+    button_press[16]=rButton(AxisLeft,button_hold[16]);
+    button_press[17]=rButton(AxisRight,button_hold[17]);
+    
 }
 
 // Returns true if any game key is pressed. This is needed because keypressed()
