@@ -2888,7 +2888,110 @@ void setMonochrome(bool v){
 	}
 }
 
+enum { colourNONE, colourGREY, colourRED, colourGREEN, colourBLUE, colourVIOLET, colourTEAL, colourAMBER };
 
+enum{ baseNONE, baseUNIFORM, baseDISTRIBUTED };
+
+void do_monochrome(bool distributed, int colour){
+	//choose a greyscale base for the monochrome
+	int base = baseUNIFORM;
+	if(distributed)base=baseDISTRIBUTED;
+	switch(colour){
+		case colourNONE:
+			if(monochrome){//If the screen is colored, clear it
+				memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
+			}
+			break;
+		case colourGREY:
+			setColour(0,0,0,base);
+			break;
+		case colourRED:
+			setColour(0,4,4,base);
+			break;
+		case colourGREEN:
+			setColour(4,0,4,base);
+			break;
+		case colourBLUE:
+			setColour(4,4,0,base);
+			break;
+		case colourVIOLET:
+			setColour(1,4,0,base);
+			break;
+		case colourTEAL:
+			setColour(4,1,0,base);
+			break;
+		case colourAMBER:
+			setColour(0,1,4,base);
+			break;
+	}
+}
+
+void do_colour(int colour){
+	switch(colour){
+		case colourNONE:
+			if(monochrome){//If the screen is colored, clear it
+				memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
+			}
+			break;
+		case colourRED:
+			setColour(0,4,4,baseNONE);
+			break;
+		case colourGREEN:
+			setColour(4,0,4,baseNONE);
+			break;
+		case colourBLUE:
+			setColour(4,4,0,baseNONE);
+			break;
+		case colourVIOLET:
+			setColour(1,4,0,baseNONE);
+			break;
+		case colourTEAL:
+			setColour(4,1,0,baseNONE);
+			break;
+		case colourAMBER:
+			setColour(0,1,4,baseNONE);
+			break;
+	}
+}
+
+void setColour(int rshift, int gshift, int bshift, int base){
+	if(monochrome){//If the screen is already colored, restore default color before tinting
+		memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
+	} else {//If the screen is not colored, store the original palette
+		memcpy(tempgreypal, RAMpal, PAL_SIZE*sizeof(RGB));
+	}
+	for(int i=0; i <= 0xEF; i++)
+	{
+		if(base==baseUNIFORM){//Recolor the palette to uniform greyscale before tinting
+			int grey = (RAMpal[i].r+RAMpal[i].g+RAMpal[i].b)/3;
+			RAMpal[i] = _RGB(grey,grey,grey);
+		} else if(base==baseDISTRIBUTED){//Recolor the palette to distributed greyscale before tinting
+			int grey = 0.299*RAMpal[i].r + 0.587*RAMpal[i].g + 0.114*RAMpal[i].b;
+			RAMpal[i] = _RGB(grey,grey,grey);
+		}
+		int r = RAMpal[i].r;
+		int g = RAMpal[i].g;
+		int b = RAMpal[i].b;
+		//Bit-shifting negatives throws errors. If negative, shift in the other direction.
+		if(rshift>=0){
+			r = zc_min(r >> rshift,63);
+		} else {
+			r = zc_min(r << -rshift,63);
+		}
+		if(gshift>=0){
+			g = zc_min(g >> gshift,63);
+		} else {
+			g = zc_min(g << -gshift,63);
+		}
+		if(bshift>=0){
+			b = zc_min(b >> bshift,63);
+		} else {
+			b = zc_min(b << -bshift,63);
+		}
+		RAMpal[i] = _RGB(r,g,b);
+	}
+	refreshpal=true;
+}
 
 /**************************/
 /********** Main **********/
