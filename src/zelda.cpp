@@ -2890,7 +2890,7 @@ void setMonochrome(bool v){
 
 enum { colourNONE, colourGREY, colourRED, colourGREEN, colourBLUE, colourVIOLET, colourTEAL, colourAMBER };
 
-enum{ baseNONE, baseUNIFORM, baseDISTRIBUTED };
+enum { baseNONE, baseUNIFORM, baseDISTRIBUTED };
 
 void do_monochrome(bool distributed, int colour){
 	//choose a greyscale base for the monochrome
@@ -2900,6 +2900,7 @@ void do_monochrome(bool distributed, int colour){
 		case colourNONE:
 			if(monochrome){//If the screen is colored, clear it
 				memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
+				monochrome=false;
 			}
 			break;
 		case colourGREY:
@@ -2926,11 +2927,12 @@ void do_monochrome(bool distributed, int colour){
 	}
 }
 
-void do_colour(int colour){
+void do_tint(int colour){
 	switch(colour){
 		case colourNONE:
 			if(monochrome){//If the screen is colored, clear it
 				memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
+				monochrome=false;
 			}
 			break;
 		case colourRED:
@@ -2988,9 +2990,13 @@ void setColour(int rshift, int gshift, int bshift, int base){
 		} else {
 			b = zc_min(b << -bshift,63);
 		}
+		/*r = zc_max(zc_min(r - rshift,63),0);
+		g = zc_max(zc_min(g - gshift,63),0);
+		b = zc_max(zc_min(b - bshift,63),0);*/
 		RAMpal[i] = _RGB(r,g,b);
 	}
 	refreshpal=true;
+	monochrome=true;
 }
 
 /**************************/
