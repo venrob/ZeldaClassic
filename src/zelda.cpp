@@ -2956,7 +2956,7 @@ void do_tint(int colour){
 	}
 }
 
-void setColour(int rshift, int gshift, int bshift, int base){
+void setColour(int radd, int gadd, int badd, int base){
 	if(monochrome){//If the screen is already colored, restore default color before tinting
 		memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
 	} else {//If the screen is not colored, store the original palette
@@ -2974,25 +2974,10 @@ void setColour(int rshift, int gshift, int bshift, int base){
 		int r = RAMpal[i].r;
 		int g = RAMpal[i].g;
 		int b = RAMpal[i].b;
-		//Bit-shifting negatives throws errors. If negative, shift in the other direction.
-		if(rshift>=0){
-			r = zc_min(r >> rshift,63);
-		} else {
-			r = zc_min(r << -rshift,63);
-		}
-		if(gshift>=0){
-			g = zc_min(g >> gshift,63);
-		} else {
-			g = zc_min(g << -gshift,63);
-		}
-		if(bshift>=0){
-			b = zc_min(b >> bshift,63);
-		} else {
-			b = zc_min(b << -bshift,63);
-		}
-		/*r = zc_max(zc_min(r - rshift,63),0);
-		g = zc_max(zc_min(g - gshift,63),0);
-		b = zc_max(zc_min(b - bshift,63),0);*/
+		//Add the r/g/b adds to the r/g/b values, clamping between 0 and 63.
+		r = zc_max(zc_min(r - radd,63),0);
+		g = zc_max(zc_min(g - gadd,63),0);
+		b = zc_max(zc_min(b - badd,63),0);
 		RAMpal[i] = _RGB(r,g,b);
 	}
 	refreshpal=true;

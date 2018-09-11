@@ -179,7 +179,7 @@ int d_timer_proc(int msg, DIALOG *d, int c);
 void setMonochrome(bool state); //GFX are monochrome. 
 void do_monochrome(bool distributed, int colour); //Monochrome presets for setColour
 void do_tint(int colour); //Non-Monochrome presets for setColour
-void setColour(int rshift, int gshift, int bshift, int base); //Tint the screen palette
+void setColour(int radd, int gadd, int badd, int base); //Tint the screen palette
 bool isMonochrome();
 
 //Save screen settings. 
