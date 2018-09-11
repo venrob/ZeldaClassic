@@ -2888,7 +2888,7 @@ void setMonochrome(bool v){
 	}
 }
 
-enum { colourNONE, colourGREY, colourRED, colourGREEN, colourBLUE, colourVIOLET, colourTEAL, colourAMBER };
+enum { colourNONE, colourGREY, colourRED, colourGREEN, colourBLUE, colourVIOLET, colourTEAL, colourAMBER, colourCYAN };
 
 enum { baseNONE, baseUNIFORM, baseDISTRIBUTED };
 
@@ -2904,25 +2904,28 @@ void do_monochrome(bool distributed, int colour){
 			}
 			break;
 		case colourGREY:
-			setColour(0,0,0,base);
+			shiftColour(0,0,0,base);
 			break;
 		case colourRED:
-			setColour(0,4,4,base);
+			shiftColour(0,4,4,base);
 			break;
 		case colourGREEN:
-			setColour(4,0,4,base);
+			shiftColour(4,0,4,base);
 			break;
 		case colourBLUE:
-			setColour(4,4,0,base);
+			shiftColour(4,4,0,base);
 			break;
 		case colourVIOLET:
-			setColour(1,4,0,base);
+			shiftColour(1,4,0,base);
 			break;
 		case colourTEAL:
-			setColour(4,1,0,base);
+			shiftColour(4,1,0,base);
 			break;
 		case colourAMBER:
-			setColour(0,1,4,base);
+			shiftColour(0,1,4,base);
+			break;
+		case colourCYAN:
+			addColour(-63,-6,-2,base);
 			break;
 	}
 }
@@ -2936,30 +2939,31 @@ void do_tint(int colour){
 			}
 			break;
 		case colourRED:
-			setColour(0,4,4,baseNONE);
+			shiftColour(0,4,4,baseNONE);
 			break;
 		case colourGREEN:
-			setColour(4,0,4,baseNONE);
+			shiftColour(4,0,4,baseNONE);
 			break;
 		case colourBLUE:
-			setColour(4,4,0,baseNONE);
+			shiftColour(4,4,0,baseNONE);
 			break;
 		case colourVIOLET:
-			setColour(1,4,0,baseNONE);
+			shiftColour(1,4,0,baseNONE);
 			break;
 		case colourTEAL:
-			setColour(4,1,0,baseNONE);
+			shiftColour(4,1,0,baseNONE);
 			break;
 		case colourAMBER:
-			setColour(0,1,4,baseNONE);
+			shiftColour(0,1,4,baseNONE);
+			break;
+		case colourCYAN:
+			addColour(-63,-6,-2,baseNONE);
 			break;
 	}
 }
 
-void setColour(int rshift, int gshift, int bshift, int base){
-	if(monochrome){//If the screen is already colored, restore default color before tinting
-		memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
-	} else {//If the screen is not colored, store the original palette
+void addColour(int radd, int gadd, int badd, int base){
+	if(!monochrome){//If the screen is not colored, store the original palette
 		memcpy(tempgreypal, RAMpal, PAL_SIZE*sizeof(RGB));
 	}
 	for(int i=0; i <= 0xEF; i++)
@@ -2971,32 +2975,54 @@ void setColour(int rshift, int gshift, int bshift, int base){
 			int grey = 0.299*RAMpal[i].r + 0.587*RAMpal[i].g + 0.114*RAMpal[i].b;
 			RAMpal[i] = _RGB(grey,grey,grey);
 		}
-		int r = RAMpal[i].r;
-		int g = RAMpal[i].g;
-		int b = RAMpal[i].b;
-		//Bit-shifting negatives throws errors. If negative, shift in the other direction.
-		if(rshift>=0){
-			r = zc_min(r >> rshift,63);
-		} else {
-			r = zc_min(r << -rshift,63);
-		}
-		if(gshift>=0){
-			g = zc_min(g >> gshift,63);
-		} else {
-			g = zc_min(g << -gshift,63);
-		}
-		if(bshift>=0){
-			b = zc_min(b >> bshift,63);
-		} else {
-			b = zc_min(b << -bshift,63);
-		}
-		/*r = zc_max(zc_min(r - rshift,63),0);
-		g = zc_max(zc_min(g - gshift,63),0);
-		b = zc_max(zc_min(b - bshift,63),0);*/
-		RAMpal[i] = _RGB(r,g,b);
+		//Add the r/g/b adds to the r/g/b values, clamping between 0 and 63.
+		RAMpal[i].r = vbound(RAMpal[i].r + radd,0,63);
+		RAMpal[i].g = vbound(RAMpal[i].g + gadd,0,63);
+		RAMpal[i].b = vbound(RAMpal[i].b + badd,0,63);
 	}
 	refreshpal=true;
 	monochrome=true;
+}
+
+void shiftColour(int rshift, int gshift, int bshift, int base){
+	if(!monochrome){//If the screen is not colored, store the original palette
+		memcpy(tempgreypal, RAMpal, PAL_SIZE*sizeof(RGB));
+	}
+	for(int i=0; i <= 0xEF; i++)
+	{
+		if(base==baseUNIFORM){//Recolor the palette to uniform greyscale before tinting
+			int grey = (RAMpal[i].r+RAMpal[i].g+RAMpal[i].b)/3;
+			RAMpal[i] = _RGB(grey,grey,grey);
+		} else if(base==baseDISTRIBUTED){//Recolor the palette to distributed greyscale before tinting
+			int grey = 0.299*RAMpal[i].r + 0.587*RAMpal[i].g + 0.114*RAMpal[i].b;
+			RAMpal[i] = _RGB(grey,grey,grey);
+		}
+		//Bit-shifting negatives throws errors. If negative, shift in the other direction.
+		if(rshift>=0){
+			RAMpal[i].r = zc_min(RAMpal[i].r >> rshift,63);
+		} else {
+			RAMpal[i].r = zc_min(RAMpal[i].r << -rshift,63);
+		}
+		if(gshift>=0){
+			RAMpal[i].g = zc_min(RAMpal[i].g >> gshift,63);
+		} else {
+			RAMpal[i].g = zc_min(RAMpal[i].g << -gshift,63);
+		}
+		if(bshift>=0){
+			RAMpal[i].b = zc_min(RAMpal[i].b >> bshift,63);
+		} else {
+			RAMpal[i].b = zc_min(RAMpal[i].b << -bshift,63);
+		}
+	}
+	refreshpal=true;
+	monochrome=true;
+}
+
+void restoreColour(){
+	if(monochrome){//If the screen is colored, clear it
+		memcpy(RAMpal, tempgreypal, PAL_SIZE*sizeof(RGB));
+		monochrome=false;
+	}
 }
 
 /**************************/
