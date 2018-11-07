@@ -4382,8 +4382,15 @@ bool LinkClass::animate(int)
     
     if(hopclk)
     {
-        action=hopping; FFCore.setLinkAction(hopping);
-    }
+		if(get_bit(quest_rules,qr_NOHOPPING))
+		{
+			hopclk = 0;
+		}
+		else
+		{
+			action=hopping; FFCore.setLinkAction(hopping);
+		}
+	}
         
     // get user input or do other animation
     freeze_guys=false;                                        // reset this flag, set it again if holding
@@ -6602,6 +6609,14 @@ void LinkClass::movelink()
         }
     }
     
+	if(action==swimming)
+	{
+		if(get_bit(quest_rules,qr_NOHOPPING) && !iswater(MAPCOMBO(int(x)+8,int(y)+(bigHitbox?0:8))) &&!iswater(MAPCOMBO(int(x)+8,int(y)+15)))
+		{
+			action=none; FFCore.setLinkAction(none);
+		}
+	}
+	
     if(action==rafting)
     {
         do_rafting();
@@ -13418,7 +13433,7 @@ void LinkClass::scrollscr(int scrolldir, int destscr, int destdmap)
         }
         else if(iswater(ahead) && (current_item(itype_flippers)))
         {
-            if(lastaction==swimming)
+            if(lastaction==swimming || get_bit(quest_rules,qr_NOHOPPING))
             {
                 action=swimming; FFCore.setLinkAction(swimming);
                 hopclk = 0xFF;

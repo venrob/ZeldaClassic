@@ -831,6 +831,7 @@ enum
     qr_OLDSIDEVIEWSPIKES,
 	qr_OLDINFMAGIC/* Compatibility */, //Infinite magic prevents items from draining rupees
 	qr_NEVERDISABLEAMMOONSUBSCREEN,
+	qr_NOHOPPING, //Disable LA_HOPPING from ever being used
     qr_MAX
 };
 

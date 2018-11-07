@@ -32,7 +32,7 @@ static int animrules1_list[] =
 // Yep, a whole tab for one rule.
 static int animrules2_list[] =
 {
-    22,-1
+    22,23,-1
 };
 
 static TABPANEL animrules_tabs[] =
@@ -72,6 +72,7 @@ static DIALOG animationrules_dlg[] =
     { jwin_check_proc,      10, 33+150, 185,    9,    vc(14),   vc(1),      0,      0,          1,             0, (void *) "Items Held Above Link's Head Continue To Animate", NULL, NULL },
     { jwin_check_proc,      10, 33+160, 185,    9,    vc(14),   vc(1),      0,      0,          1,             0, (void *) "Bomb Explosions Don't Flash Palette", NULL, NULL },
     { jwin_check_proc,      10, 33+10,  185,    9,    vc(14),   vc(1),      0,      0,          1,             0, (void *) "Layers 1 and 2 Are Drawn Under Caves", NULL, NULL },
+	{ jwin_check_proc,      10, 33+20,  185,    9,    vc(14),   vc(1),      0,      0,          1,             0, (void *) "No Water Hopping Transition", NULL, NULL },
     { NULL,                  0,    0,     0,    0,    0,        0,          0,      0,          0,             0,       NULL, NULL, NULL }
 };
 
@@ -81,7 +82,7 @@ static int animationrules[] =
     qr_SMASWIPE, qr_EXPANDEDLTM, qr_NOSCROLL, qr_FASTDNGN,
     qr_VERYFASTSCROLLING, qr_SMOOTHVERTICALSCROLLING, qr_FFCSCROLL, qr_FADE,
     qr_FADECS5, qr_LINKFLICKER, qr_HOLDITEMANIMATION, qr_NOBOMBPALFLASH,
-    qr_LAYER12UNDERCAVE, -1
+    qr_LAYER12UNDERCAVE, qr_NOHOPPING, -1
 };
 
 int onAnimationRules()
