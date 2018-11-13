@@ -4376,6 +4376,7 @@ bool LinkClass::animate(int)
     
     if(hopclk)
     {
+		tempaction = action;
         action=hopping; FFCore.setLinkAction(hopping);
     }
         
@@ -6291,6 +6292,13 @@ void LinkClass::do_hopping()
                 
                 if(dir==up)
                 {
+					if(!iswater(MAPCOMBO(x,y-1)))
+					{
+						action = tempaction; FFCore.setLinkAction(tempaction); tempaction = none;
+						hopclk = 0;
+						hopdir = -1;
+						return;
+					}
                     linkstep();
                     linkstep();
                     int sidestep=0;
@@ -6314,6 +6322,13 @@ void LinkClass::do_hopping()
                 
                 if(dir==down)
                 {
+					if(!iswater(MAPCOMBO(x,y+16)))
+					{
+						action = tempaction; FFCore.setLinkAction(tempaction); tempaction = none;
+						hopclk = 0;
+						hopdir = -1;
+						return;
+					}
                     linkstep();
                     linkstep();
                     int sidestep=0;
@@ -6338,6 +6353,13 @@ void LinkClass::do_hopping()
                 
                 if(dir==left)
                 {
+					if(!iswater(MAPCOMBO(x-1,y)))
+					{
+						action = tempaction; FFCore.setLinkAction(tempaction); tempaction = none;
+						hopclk = 0;
+						hopdir = -1;
+						return;
+					}
                     linkstep();
                     linkstep();
                     int sidestep=0;
@@ -6361,6 +6383,13 @@ void LinkClass::do_hopping()
                 
                 if(dir==right)
                 {
+					if(!iswater(MAPCOMBO(x+16,y)))
+					{
+						action = tempaction; FFCore.setLinkAction(tempaction); tempaction = none;
+						hopclk = 0;
+						hopdir = -1;
+						return;
+					}
                     linkstep();
                     linkstep();
                     
