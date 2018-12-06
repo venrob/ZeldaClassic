@@ -1057,8 +1057,10 @@ using namespace std;
 #define GRAPHICSMONO 	992
 #define GRAPHICSTINT 	993
 #define CREATEBITMAP 	994
+#define LINKTILEMOD 	995
+#define NPCINITD 	996
 
-#define LAST_BYTECODE 		995
+#define LAST_BYTECODE 		997
 
 //END OF BYTECODE
 
@@ -6855,8 +6857,106 @@ namespace ZScript
 			return new OBMPRectangleRegister();
 		}
 	};
-
 	
+	class OLinkWarpExRegister : public UnaryOpcode
+	{
+	public:
+		OLinkWarpExRegister(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OLinkWarpExRegister(a->clone());
+		}
+	};
+	
+	class OLinkExplodeRegister : public UnaryOpcode
+	{
+	public:
+		OLinkExplodeRegister(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OLinkExplodeRegister(a->clone());
+		}
+	};
+	
+	class OGetSystemRTCRegister : public UnaryOpcode
+	{
+	public:
+		OGetSystemRTCRegister(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGetSystemRTCRegister(a->clone());
+		}
+	};
+	
+
+	class ONPCExplodeRegister : public UnaryOpcode
+	{
+	public:
+		ONPCExplodeRegister(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new ONPCExplodeRegister(a->clone());
+		}
+	};
+	
+	class OLWeaponExplodeRegister : public UnaryOpcode
+	{
+	public:
+		OLWeaponExplodeRegister(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OLWeaponExplodeRegister(a->clone());
+		}
+	};
+
+	class OEWeaponExplodeRegister : public UnaryOpcode
+	{
+	public:
+		OEWeaponExplodeRegister(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OEWeaponExplodeRegister(a->clone());
+		}
+	};
+
+	class OItemExplodeRegister : public UnaryOpcode
+	{
+	public:
+		OItemExplodeRegister(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OItemExplodeRegister(a->clone());
+		}
+	};
+	
+	class ORunItemScript : public UnaryOpcode
+	{
+	public:
+		ORunItemScript(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new ORunItemScript(a->clone());
+		}
+	};
+	/*
+	class ORunItemScript : public Opcode
+	{
+	public:
+		string toString();
+		Opcode *clone()
+		{
+			return new ORunItemScript();
+		}
+	};
+	*/
 	class OReturn : public Opcode
 	{
 	public:

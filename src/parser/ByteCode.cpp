@@ -1665,6 +1665,8 @@ string VarArgument::toString()
 	case DEBUGD: return "DEBUGD";
 	case GETPIXEL: return "GETPIXEL";
 	case DOUNTYPE: return "DOUNTYPE";
+	case LINKTILEMOD: return "LINKTILEMOD";
+	case NPCINITD: return "NPCINITD";
 	
 	
     default:
@@ -4122,6 +4124,49 @@ string OBMPDrawScreenRegister::toString()
     return "BMPDRAWSCREENR";
 }
 
+string OLinkWarpExRegister::toString()
+{
+    return "LINKWARPEXR " + getArgument()->toString();
+}
+
+string OLinkExplodeRegister::toString()
+{
+    return "LINKEXPLODER " + getArgument()->toString();
+}
+
+
+string OGetSystemRTCRegister::toString()
+{
+    return "GETRTCTIMER " + getArgument()->toString();
+}
+
+
+string ONPCExplodeRegister::toString()
+{
+    return "NPCEXPLODER " + getArgument()->toString();
+}
+string OLWeaponExplodeRegister::toString()
+{
+    return "LWEAPONEXPLODER " + getArgument()->toString();
+}
+string OEWeaponExplodeRegister::toString()
+{
+    return "EWEAPONEXPLODER " + getArgument()->toString();
+}
+string OItemExplodeRegister::toString()
+{
+    return "ITEMEXPLODER " + getArgument()->toString();
+}
+
+string ORunItemScript::toString()
+{
+    return "RUNITEMSCRIPT " + getArgument()->toString();
+}
+
+//string ORunItemScript::toString()
+//{
+//    return "RUNITEMSCRIPT";
+//}
 
 string OReturn::toString()
 {

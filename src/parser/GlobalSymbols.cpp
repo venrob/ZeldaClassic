@@ -591,8 +591,9 @@ static AccessorTable GlobalTable[] =
     { "OverlayTile",               ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_FLOAT,        ZVARTYPEID_FLOAT,         -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     //{ "NUL",               ScriptParser::TYPE_UNTYPED,          FUNCTION,     0,                    1,      {  -1,        -1,         -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     //{ "Null",               ScriptParser::TYPE_UNTYPED,          FUNCTION,     0,                    1,      {  ScriptParser::TYPE_UNTYPED,        -1,         -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
-   { "Untype",               ZVARTYPEID_UNTYPED,          FUNCTION,     0,                    1,      {  ZVARTYPEID_UNTYPED,        -1,         -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
-   //
+    { "Untype",               ZVARTYPEID_UNTYPED,          FUNCTION,     0,                    1,      {  ZVARTYPEID_UNTYPED,        -1,         -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    //
+    { "GetSystemTime",          ZVARTYPEID_FLOAT,         FUNCTION,     0,                    1,      {  ZVARTYPEID_FLOAT,        -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     
     //TYPE_UNTYPED
     { "",                      -1,                               -1,           -1,                   -1,      { -1,                               -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } }
@@ -651,6 +652,20 @@ void GlobalSymbols::generateCode()
         code.push_back(new OReturn());
         function->giveCode(code);
     }
+    
+    //int GetSystemTime(int category)
+    {
+	    Function* function = getFunction("GetSystemTime");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        code.push_back(new OGetSystemRTCRegister(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    
     //void Quit()
     {
 	    Function* function = getFunction("Quit");
@@ -1402,9 +1417,13 @@ static AccessorTable LinkSTable[] =
     { "setMaxMP",               ZVARTYPEID_VOID,          SETTER,       LINKMAXMP,            1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getAction",              ZVARTYPEID_FLOAT,         GETTER,       LINKACTION,           1,      {  ZVARTYPEID_LINK,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setAction",              ZVARTYPEID_VOID,          SETTER,       LINKACTION,           1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "getTileMod",              ZVARTYPEID_FLOAT,         GETTER,       LINKTILEMOD,           1,      {  ZVARTYPEID_LINK,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "setTileMod",              ZVARTYPEID_VOID,          SETTER,       LINKTILEMOD,           1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getHeldItem",            ZVARTYPEID_FLOAT,         GETTER,       LINKHELD,             1,      {  ZVARTYPEID_LINK,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setHeldItem",            ZVARTYPEID_VOID,          SETTER,       LINKHELD,             1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "Warp",                   ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,         ZVARTYPEID_FLOAT,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "WarpEx",                   ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,         -1,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "Explode",                   ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,         -1,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "PitWarp",                ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_FLOAT,         ZVARTYPEID_FLOAT,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getInputStart",          ZVARTYPEID_BOOL,          GETTER,       INPUTSTART,           1,      {  ZVARTYPEID_LINK,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setInputStart",          ZVARTYPEID_VOID,          SETTER,       INPUTSTART,           1,      {  ZVARTYPEID_LINK,          ZVARTYPEID_BOOL,         -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
@@ -1595,7 +1614,28 @@ void LinkSymbols::generateCode()
         code.push_back(new OReturn());
         function->giveCode(code);
     }
-    
+    {
+	Function* function = getFunction("WarpEx");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        Opcode *first = new OPopRegister(new VarArgument(EXP2));
+        first->setLabel(label);
+        code.push_back(first);
+        code.push_back(new OLinkWarpExRegister(new VarArgument(EXP2)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    {
+	Function* function = getFunction("Explode");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        Opcode *first = new OPopRegister(new VarArgument(EXP2));
+        first->setLabel(label);
+        code.push_back(first);
+        code.push_back(new OLinkExplodeRegister(new VarArgument(EXP2)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
        //void SetItemSlot(link, int item, int slot, int force)
     {
 	    Function* function = getFunction("SetItemSlot");
@@ -3043,6 +3083,7 @@ static AccessorTable itemTable[] =
     { "setPickupStringFlags",              ZVARTYPEID_VOID,          SETTER,       ITEMPSTRINGFLAGS,           1,      {  ZVARTYPEID_ITEM,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getSizeFlags",              ZVARTYPEID_FLOAT,         GETTER,       ITEMOVERRIDEFLAGS,           1,      {  ZVARTYPEID_ITEM,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setSizeFlags",              ZVARTYPEID_VOID,          SETTER,       ITEMOVERRIDEFLAGS,           1,      {  ZVARTYPEID_ITEM,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "Explode",                   ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_ITEM,          ZVARTYPEID_FLOAT,         -1,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     
     { "",                      -1,                               -1,           -1,                   -1,      { -1,                               -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } }
 };
@@ -3066,6 +3107,21 @@ void ItemSymbols::generateCode()
         code.push_back(first);
         //Check validity
         code.push_back(new OIsValidItem(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    //void Explode(ITEM, int)
+    {
+	    Function* function = getFunction("Explode");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        //pop off the param
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        //pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new OItemExplodeRegister(new VarArgument(EXP1)));
         code.push_back(new OReturn());
         function->giveCode(code);
     }
@@ -3100,6 +3156,7 @@ static AccessorTable itemclassTable[] =
     { "getInitD[]",             ZVARTYPEID_UNTYPED,         GETTER,       ITEMCLASSINITDD,      2,      {  ZVARTYPEID_ITEMCLASS,     ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setInitD[]",             ZVARTYPEID_VOID,          SETTER,       ITEMCLASSINITDD,      2,      {  ZVARTYPEID_ITEMCLASS,     ZVARTYPEID_FLOAT,         ZVARTYPEID_UNTYPED,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "GetName",                ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_ITEMCLASS,     ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "RunScript",                ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_ITEMCLASS,     ZVARTYPEID_BOOL,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     
     { "getModifier",               ZVARTYPEID_FLOAT,         GETTER,       IDATALTM,       1,      {  ZVARTYPEID_ITEMCLASS,    -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },      
     { "setModifier",               ZVARTYPEID_VOID,          SETTER,       IDATALTM,       1,      {  ZVARTYPEID_ITEMCLASS,     ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
@@ -3265,9 +3322,10 @@ ItemclassSymbols::ItemclassSymbols()
 
 void ItemclassSymbols::generateCode()
 {
+    /*
     //void GetName(itemclass, int)
     {
-	    Function* function = getFunction("GetName");
+	Function* function = getFunction("GetName");
         int label = function->getLabel();
         vector<Opcode *> code;
         //pop off the param
@@ -3280,6 +3338,74 @@ void ItemclassSymbols::generateCode()
         code.push_back(new OReturn());
         function->giveCode(code);
     }
+	*/
+    
+    //bool isValid(npc)
+    //bool RunScript(itemdata)
+	/*
+    {
+	Function* function = getFunction("RunScript");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        //pop off the pointer
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        //Check validity
+        code.push_back(new ORunItemScript(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    */
+    /*
+    //void RunScript(itemdata)
+    {
+	Function* function = getFunction("RunScript");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        //pop pointer, and ignore it
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+	code.push_back(new ORunItemScript());
+	//code.push_back(new ORunItemScript(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    
+     //void RunScript(itemdata)
+    {
+	Function* function = getFunction("RunScript");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        Opcode *first = new ORunItemScript();
+        first->setLabel(label);
+        code.push_back(first);
+        //pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new OReturn());
+        
+        function->giveCode(code);
+    }
+    */
+    
+    //void Explode(npc, int)
+    {
+	Function* function = getFunction("RunScript");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        //pop off the param
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        //pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new ORunItemScript(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    
 }
 
 GameSymbols GameSymbols::singleton = GameSymbols();
@@ -5384,9 +5510,13 @@ static AccessorTable npcTable[] =
     { "setHitXOffset",          ZVARTYPEID_VOID,          SETTER,       NPCHXOFS,             1,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getHitYOffset",          ZVARTYPEID_FLOAT,         GETTER,       NPCHYOFS,             1,      {  ZVARTYPEID_NPC,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setHitYOffset",          ZVARTYPEID_VOID,          SETTER,       NPCHYOFS,             1,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
-    { "isValid",				  ZVARTYPEID_BOOL,          FUNCTION,     0,                    1,      {  ZVARTYPEID_NPC,          -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "isValid",		ZVARTYPEID_BOOL,          FUNCTION,     0,                    1,      {  ZVARTYPEID_NPC,          -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "Explode",                   ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,         -1,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    
     { "getMisc[]",              ZVARTYPEID_UNTYPED,         GETTER,       NPCMISCD,            32,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setMisc[]",              ZVARTYPEID_VOID,          SETTER,       NPCMISCD,            32,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,         ZVARTYPEID_UNTYPED,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "getInitD[]",              ZVARTYPEID_UNTYPED,         GETTER,       NPCINITD,            8,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    { "setInitD[]",              ZVARTYPEID_VOID,          SETTER,       NPCINITD,            8,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,         ZVARTYPEID_UNTYPED,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getAttributes[]",        ZVARTYPEID_UNTYPED,         GETTER,       NPCDD,               32,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setAttributes[]",        ZVARTYPEID_VOID,          SETTER,       NPCDD,               32,      {  ZVARTYPEID_NPC,          ZVARTYPEID_FLOAT,         ZVARTYPEID_UNTYPED,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getMiscFlags",           ZVARTYPEID_FLOAT,         GETTER,       NPCMFLAGS,            1,      {  ZVARTYPEID_NPC,          -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
@@ -5462,9 +5592,24 @@ void NPCSymbols::generateCode()
         code.push_back(new OReturn());
         function->giveCode(code);
     }
+    /*
+    {
+	Function* function = getFunction("Explode");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        Opcode *first = new OPopRegister(new VarArgument(EXP2));
+        first->setLabel(label);
+        code.push_back(first);
+	//pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new ONPCExplodeRegister(new VarArgument(EXP2)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    */
     //void GetName(npc, int)
     {
-	    Function* function = getFunction("GetName");
+	Function* function = getFunction("GetName");
         int label = function->getLabel();
         vector<Opcode *> code;
         //pop off the param
@@ -5474,6 +5619,21 @@ void NPCSymbols::generateCode()
         //pop pointer, and ignore it
         code.push_back(new OPopRegister(new VarArgument(NUL)));
         code.push_back(new OGetNPCName(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    //void Explode(npc, int)
+    {
+	    Function* function = getFunction("Explode");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        //pop off the param
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        //pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new ONPCExplodeRegister(new VarArgument(EXP1)));
         code.push_back(new OReturn());
         function->giveCode(code);
     }
@@ -5580,7 +5740,8 @@ static AccessorTable lwpnTable[] =
     { "getLevel",          ZVARTYPEID_FLOAT,         GETTER,       LWPNLEVEL,            1,      {  ZVARTYPEID_LWPN,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "setLevel",          ZVARTYPEID_VOID,          SETTER,       LWPNLEVEL,            1,      {  ZVARTYPEID_LWPN,          ZVARTYPEID_FLOAT,        -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getUID",          ZVARTYPEID_FLOAT,         GETTER,       LWEAPONSCRIPTUID,            1,      {  ZVARTYPEID_LWPN,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
-   
+    { "Explode",                   ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_LWPN,          ZVARTYPEID_FLOAT,         -1,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    
    
 
     { "",                      -1,                               -1,           -1,                   -1,      { -1,                                -1,                              -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } }
@@ -5605,6 +5766,21 @@ void LinkWeaponSymbols::generateCode()
         code.push_back(first);
         //Check validity
         code.push_back(new OIsValidLWpn(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    //void Explode(lweapon, int)
+    {
+	    Function* function = getFunction("Explode");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        //pop off the param
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        //pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new OLWeaponExplodeRegister(new VarArgument(EXP1)));
         code.push_back(new OReturn());
         function->giveCode(code);
     }
@@ -5710,6 +5886,8 @@ static AccessorTable ewpnTable[] =
     { "setCollDetection", 	  ZVARTYPEID_VOID,          SETTER,       EWPNCOLLDET,          1,      {  ZVARTYPEID_EWPN,          ZVARTYPEID_BOOL,         -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
     { "getUID",          ZVARTYPEID_FLOAT,         GETTER,       EWEAPONSCRIPTUID,            1,      {  ZVARTYPEID_EWPN,         -1,                               -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
 
+    { "Explode",                   ZVARTYPEID_VOID,          FUNCTION,     0,                    1,      {  ZVARTYPEID_EWPN,          ZVARTYPEID_FLOAT,         -1,    -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } },
+    
     { "",                      -1,                               -1,           -1,                   -1,      { -1,                                -1,                              -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1,                           -1                           } }
 };
 
@@ -5732,6 +5910,21 @@ void EnemyWeaponSymbols::generateCode()
         code.push_back(first);
         //Check validity
         code.push_back(new OIsValidEWpn(new VarArgument(EXP1)));
+        code.push_back(new OReturn());
+        function->giveCode(code);
+    }
+    //void Explode(eweapon, int)
+    {
+	    Function* function = getFunction("Explode");
+        int label = function->getLabel();
+        vector<Opcode *> code;
+        //pop off the param
+        Opcode *first = new OPopRegister(new VarArgument(EXP1));
+        first->setLabel(label);
+        code.push_back(first);
+        //pop pointer, and ignore it
+        code.push_back(new OPopRegister(new VarArgument(NUL)));
+        code.push_back(new OEWeaponExplodeRegister(new VarArgument(EXP1)));
         code.push_back(new OReturn());
         function->giveCode(code);
     }

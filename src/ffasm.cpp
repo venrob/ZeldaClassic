@@ -724,6 +724,23 @@ script_command command_list[NUMCOMMANDS+1]=
      { "BMPDRAWSCREENR",                0,   0,   0,   0},
      { "BMPBLIT",                0,   0,   0,   0},
      
+     { "LINKWARPEXR",             1,   0,   0,   0},
+     { "LINKWARPEXV",             1,   1,   0,   0},
+     { "LINKEXPLODER",             1,   0,   0,   0},
+     { "LINKEXPLODEV",             1,   1,   0,   0},
+     { "NPCEXPLODER",             1,   0,   0,   0},
+     { "NPCEXPLODEV",             1,   1,   0,   0},
+     
+     { "ITEMEXPLODER",             1,   0,   0,   0},
+     { "ITEMEXPLODEV",             1,   1,   0,   0},
+     { "LWEAPONEXPLODER",             1,   0,   0,   0},
+     { "LWEAPONEXPLODEV",             1,   1,   0,   0},
+     { "EWEAPONEXPLODER",             1,   0,   0,   0},
+     { "EWEAPONEXPLODEV",             1,   1,   0,   0},
+     { "RUNITEMSCRIPT",			   0,   0,   0,   0},
+     { "GETRTCTIMER",             1,   0,   0,   0},
+     { "GETRTCTIMEV",             1,   1,   0,   0},
+     
      { "",                    0,   0,   0,   0}
 };
 
@@ -829,7 +846,7 @@ script_variable variable_list[]=
     { "NPCBOSSPAL",        NPCBOSSPAL,           0,             0 },
     { "NPCBGSFX",          NPCBGSFX,             0,             0 },
     { "NPCCOUNT",          NPCCOUNT,             0,             0 },
-    { "GD",                GD(0),              256,             0 },
+    { "GD",                GD(0),              1024,             0 },
     { "SDD",               SDD,                  0,             0 },
     { "GDD",               GDD,                  0,             0 },
     { "SDDD",              SDDD,                 0,             0 },
@@ -1710,6 +1727,8 @@ script_variable variable_list[]=
 	{"NPCBEHAVIOUR", NPCBEHAVIOUR, 0, 0 },
 	{"NPCDATABEHAVIOUR", NPCDATABEHAVIOUR, 0, 0 },
 	{"CREATEBITMAP", CREATEBITMAP, 0, 0 },
+	{"LINKTILEMOD", LINKTILEMOD, 0, 0 },
+	{"NPCINITD", NPCINITD, 0, 0 },
 	
 	
 	
