@@ -13408,7 +13408,7 @@ void LinkClass::scrollscr(int scrolldir, int destscr, int destdmap)
     }
     while(cx < 32);
     
-    script_drawing_commands.Clear();
+    //script_drawing_commands.Clear();
     
     
     //clear Link's last hits 
