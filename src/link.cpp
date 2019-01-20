@@ -11270,9 +11270,6 @@ bool LinkClass::dowarp(int type, int index)
     //int lastdmap_org = lastentrance_dmap;
     bool wasSideview = isSideViewGravity(t); // (tmpscr[t].flags7 & fSIDEVIEW)!=0 && !ignoreSideview;
     
-    // Drawing commands probably shouldn't carry over...
-    script_drawing_commands.Clear();
-    
     //KILL ambient sound
 //    mapscr *m = &TheMaps[ri->mapsref]
     //oceansfx = 0; newscr->oceansfx
@@ -11338,6 +11335,9 @@ bool LinkClass::dowarp(int type, int index)
 	//FFCore.initZScriptDMapScripts();   //Not needed. 
     //} 
     rehydratelake(type!=wtSCROLL);
+    
+    // Drawing commands probably shouldn't carry over...
+    if(wtype != wtNOWARP)script_drawing_commands.Clear();
     
     switch(wtype)
     {
