@@ -50,6 +50,7 @@ namespace ZScript
 	// Local
 	class AST; // virtual
 	class ASTFile;
+	class ASTNamespace;
 	class ASTFloat;
 	class ASTString;
 	class ASTSetOption;
@@ -269,7 +270,24 @@ namespace ZScript
 		owning_vector<ASTDataTypeDef> dataTypes;
 		owning_vector<ASTScriptTypeDef> scriptTypes;
 		owning_vector<ASTScript> scripts;
+		owning_vector<ASTNamespace> namespaces;
 	};
+	
+	class ASTNamespace : public AST
+	{
+	public:
+		ASTNamespace(LocationData const& location = LocationData::NONE);
+		ASTNamespace* clone() const {return new ASTNamespace(*this);}
+		
+		void execute(ASTVisitor& visitor, void* param = NULL);
+		
+		//owning_vector<ASTSetOption> options; //Currently disallowed -V
+		owning_vector<ASTDataDeclList> variables;
+		owning_vector<ASTFuncDecl> functions;
+		owning_vector<ASTDataTypeDef> dataTypes;
+		owning_vector<ASTScriptTypeDef> scriptTypes;
+		owning_vector<ASTScript> scripts;
+	}
 
 	class ASTFloat : public AST
 	{

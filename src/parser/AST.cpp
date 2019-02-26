@@ -97,6 +97,15 @@ bool ASTFile::hasDeclarations() const
 		|| !scripts.empty();
 }
 
+// ASTNamespace
+
+ASTNamespace::ASTNamespace(LocationData const& location) : AST(location) {}
+
+void ASTNamespace::execute(ASTVisitor& visitor, void* param)
+{
+	visitor.caseNamespace(*this, param);
+}
+
 // ASTFloat
 
 ASTFloat::ASTFloat(char* value, Type type, LocationData const& location)
