@@ -336,7 +336,7 @@ bool DataTypeSimple::canCastTo(DataType const& target) const
 
 bool DataTypeSimple::canBeGlobal() const
 {
-	return simpleId == ZVARTYPEID_FLOAT || simpleId == ZVARTYPEID_BOOL;
+	return simpleId == ZVARTYPEID_FLOAT || simpleId == ZVARTYPEID_BOOL || simpleId == ZVARTYPEID_UNTYPED;
 }
 
 ////////////////////////////////////////////////////////////////
