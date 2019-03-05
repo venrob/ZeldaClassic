@@ -997,6 +997,7 @@ Literal_Array :
 	// {1, 2, 3}
 	| LBRACE Literal_Array_Body RBRACE {
 		ASTArrayLiteral* al = (ASTArrayLiteral*)$2;
+		al->type new ASTDataType(DataType::UNTYPED, @$);
 		al->location = @$;
 		$$ = al;}
 	;
