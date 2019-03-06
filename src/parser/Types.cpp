@@ -377,7 +377,7 @@ string DataTypeClass::getName() const
 	string name = className == "" ? "anonymous" : className;
 	char tmp[32];
 	sprintf(tmp, "%d", classId);
-	return name + "[class " + tmp + "]";
+	return name;
 }
 
 bool DataTypeClass::canCastTo(DataType const& target) const
