@@ -137,7 +137,7 @@ namespace ZScript
 		virtual std::string getName() const = 0;
 		virtual bool canCastTo(DataType const& target) const = 0;
 		virtual bool canBeGlobal() const {return false;}
-		virtual DataType* getVarType() {return this;}
+		virtual DataType* getVarType() const {return this;}
 
 		// Derived class info.
 		virtual bool isArray() const {return false;}
@@ -271,7 +271,7 @@ namespace ZScript
 		virtual bool canCastTo(DataType const& target) const;
 		virtual bool canBeGlobal() const;
 		virtual bool isConstant() const {return false;}
-		virtual DataType* getVarType() {return this;}
+		virtual DataType* getVarType() const {return this;}
 
 		int getId() const {return simpleId;}
 
@@ -287,7 +287,7 @@ namespace ZScript
 	public:
 		DataTypeSimpleConst(int simpleId, std::string const& name);
 		DataTypeSimpleConst* clone() const {return new DataTypeSimpleConst(*this);}
-		virtual DataType* getVarType() {return *DataType::get(simpleId);}
+		virtual DataType* getVarType() const {return *DataType::get(simpleId);}
 		
 		virtual DataTypeSimpleConst* resolve(ZScript::Scope&) {return this;}
 		
@@ -326,7 +326,7 @@ namespace ZScript
 		virtual bool canBeGlobal() const {return true;}
 		virtual bool isClass() const {return true;}
 		virtual bool isConstant() const {return false;}
-		virtual DataType* getVarType() {return this;}
+		virtual DataType* getVarType() const {return this;}
 
 		std::string getClassName() const {return className;}
 		int getClassId() const {return classId;}
@@ -343,7 +343,7 @@ namespace ZScript
 	public:
 		DataTypeClassConst(int classId, std::string const& name);
 		DataTypeClassConst* clone() const {return new DataTypeClassConst(*this);}
-		virtual DataType* getVarType() {return *DataType::get(simpleId);}
+		virtual DataType* getVarType() const {return *DataType::get(classId);}
 		
 		virtual DataTypeClassConst* resolve(ZScript::Scope&) {return this;}
 		
