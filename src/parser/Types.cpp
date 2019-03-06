@@ -215,7 +215,6 @@ DataType const* DataType::get(DataTypeId id)
 	case ZVARTYPEID_VOID: return &ZVOID;
 	case ZVARTYPEID_FLOAT: return &FLOAT;
 	case ZVARTYPEID_BOOL: return &BOOL;
-	//case ZVARTYPEID_CONST_FLOAT: return &CONST_FLOAT;
 	case ZVARTYPEID_GAME: return &GAME;
 	case ZVARTYPEID_LINK: return &LINK;
 	case ZVARTYPEID_SCREEN: return &SCREEN;
@@ -350,12 +349,8 @@ int DataTypeSimple::selfCompare(DataType const& rhs) const
 
 bool DataTypeSimple::canCastTo(DataType const& target) const
 {
-	if (simpleId == ZVARTYPEID_UNTYPED) return true;
-	if (target == UNTYPED) return true;
-	
-	/*if (DataTypeConstFloat const* t =
-			dynamic_cast<DataTypeConstFloat const*>(&target))
-		return canCastTo(DataType::FLOAT);*/
+	if (isUntyped()) return true;
+	if (target.isUntyped()) return true;
 
 	if (DataTypeArray const* t =
 			dynamic_cast<DataTypeArray const*>(&target))
@@ -391,18 +386,6 @@ DataTypeSimpleConst::DataTypeSimpleConst(int simpleId, string const& name)
 {}
 
 ////////////////////////////////////////////////////////////////
-// DataTypeConstFloat
-
-/*bool DataTypeConstFloat::canCastTo(DataType const& target) const
-{
-	if (target == UNTYPED) return true;
-	if (target == BOOL) return true; //Not enough, it seems. Where do we check assigns to const? -Z
-	
-	if (*this == target) return true;
-	return DataType::FLOAT.canCastTo(target);
-}*/
-
-////////////////////////////////////////////////////////////////
 // DataTypeClass
 
 DataTypeClass::DataTypeClass(int classId)
@@ -432,7 +415,7 @@ string DataTypeClass::getName() const
 
 bool DataTypeClass::canCastTo(DataType const& target) const
 {
-	if (target == UNTYPED || target == CUNTYPED) return true;
+	if (target.isUntyped()) return true;
 	
 	if (DataTypeArray const* t =
 			dynamic_cast<DataTypeArray const*>(&target))
@@ -463,7 +446,7 @@ DataTypeClassConst::DataTypeClassConst(int classId, string const& name)
 
 bool DataTypeArray::canCastTo(DataType const& target) const
 {
-	if (target == UNTYPED || target == CUNTYPED) return true;
+	if (target.isUntyped()) return true;
 	
 	if (DataTypeArray const* t =
 			dynamic_cast<DataTypeArray const*>(&target))
