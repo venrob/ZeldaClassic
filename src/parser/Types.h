@@ -137,7 +137,7 @@ namespace ZScript
 		virtual std::string getName() const = 0;
 		virtual bool canCastTo(DataType const& target) const = 0;
 		virtual bool canBeGlobal() const {return false;}
-		virtual DataType getVarType() const {return this;}
+		virtual DataType* getVarType() const {return this;}
 
 		// Derived class info.
 		virtual bool isArray() const {return false;}
