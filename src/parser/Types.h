@@ -287,7 +287,7 @@ namespace ZScript
 	public:
 		DataTypeSimpleConst(int simpleId, std::string const& name);
 		DataTypeSimpleConst* clone() const {return new DataTypeSimpleConst(*this);}
-		virtual DataType* getVarType() {return DataType::get(simpleId);}
+		virtual DataType* getVarType() {return *DataType::get(simpleId);}
 		
 		virtual DataTypeSimpleConst* resolve(ZScript::Scope&) {return this;}
 		
@@ -343,7 +343,7 @@ namespace ZScript
 	public:
 		DataTypeClassConst(int classId, std::string const& name);
 		DataTypeClassConst* clone() const {return new DataTypeClassConst(*this);}
-		virtual DataType* getVarType() {return DataType::get(simpleId);}
+		virtual DataType* getVarType() {return *DataType::get(simpleId);}
 		
 		virtual DataTypeClassConst* resolve(ZScript::Scope&) {return this;}
 		
