@@ -285,12 +285,24 @@ bool ZScript::operator>=(DataType const& lhs, DataType const& rhs)
 
 DataType const& ZScript::getNaiveType(DataType const& type)
 {
-	//Convert constants
-	type = type->getVarType();
 
 	DataType const* t = &type;
 	while (DataTypeArray const* ta = dynamic_cast<DataTypeArray const*>(t))
 		t = &ta->getElementType();
+	
+	//Convert constant types to their variable counterpart
+	if(t->isConstant())
+	{
+		if(DataTypeSimpleConst const* ts = dynamic_cast<DataTypeSimpleConst const*>(t))
+		{
+			t = DataType::get(ts->getId());
+		}
+		
+		if(DataTypeClassConst const* tc = dynamic_cast<DataTypeClassConst const*>(t))
+		{
+			t = DataType::get(tc->getClassId());
+		}
+	}
 
 	return *t;
 }
