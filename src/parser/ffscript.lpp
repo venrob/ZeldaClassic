@@ -11,6 +11,15 @@
 %x IMPORTING
 %x IMPORTSTR
 %s HASH
+/* PPC States */
+%x P_PPC
+%x P_HASH
+%x P_DEFINE
+%x P_DEFINE2
+%x P_DEFINE3
+%x P_UNDEF
+/* Buffer merging states */
+%x MERGEBUF
 
 %{
 #include <stdlib.h>
@@ -33,6 +42,7 @@ using namespace ZScript;
 
 int srow, scol;
 std::ostringstream qstr;
+void setState(int state);
 
 #define NEWLINE ++yyrow; yycol = 1
 #define ADVANCE yycol += yyleng
@@ -419,8 +429,83 @@ link	TOKEN( LINK );
 [ \t\r]*\n	NEWLINE;
 [ \t\r]+	ADVANCE;
 
+ /* PPC */
+<P_PPC>{
+	"#define"			BEGIN( P_DEFINE ); TOKEN( PPC_DEFINE );
+	"#undef"			BEGIN( P_UNDEF ); TOKEN( PPC_UNDEF );
+	(.|\n)+				TOKEN( PPC_DATA );
+}
+
+<P_DEFINE>{ //Handle initial define identifier
+	[ \t\r]+	ADVANCE;
+	[_a-zA-Z][_a-zA-Z0-9]*	{
+		BEGIN( P_DEFINE2 );
+		VALUE( IDENTIFIER, ASTString(yytext, yylloc) );
+	}
+	.			yymsg("WARNING: Unknown Character");
+}
+
+<P_DEFINE2>{ //Handle either going straight to taking the definition, or taking more arguments in parens
+	"("		BEGIN( P_DEFINE3 ); TOKEN( LPAREN );
+	\n		{
+		yymsg("ERROR: List of #define parameters is incomplete!");
+		TERMINATE;
+	}
+	[ \t\r]+	ADVANCE;
+	[^\(]	{
+		BEGIN( P_HASH );
+		qstr.str(""); /* Clear qstr */
+		qstr << yytext;
+		srow = yyrow;
+		scol = yycol;
+		ADVANCE;
+	}
+	.			yymsg("WARNING: Unknown Character");
+}
+
+<P_DEFINE3>{ //Handle extra arguments in parens
+	[_a-zA-Z][_a-zA-Z0-9]*	{
+		VALUE( IDENTIFIER, ASTString(yytext, yylloc) );
+	}
+	","			TOKEN( COMMA );
+	")"			{
+		BEGIN( P_HASH );
+		qstr.str(""); /* Clear qstr */
+		srow = yyrow;
+		scol = yycol;
+		TOKEN( RPAREN );
+	}
+	\\\n		NEWLINE;
+	[ \t\r]+	ADVANCE;
+	[^\\]\n		{
+		yymsg("ERROR: List of #define parameters is incomplete!", srow, scol);
+		TERMINATE;
+	}
+	<<EOF>>		{
+		yymsg("ERROR: List of #define parameters is incomplete!", srow, scol);
+		TERMINATE;
+	}
+	.			yymsg("WARNING: Unknown Character");
+}
+
+<P_UNDEF>{
+	[_a-zA-Z][_a-zA-Z0-9]*	{
+		VALUE( IDENTIFIER, ASTString(yytext, yylloc) );
+	}
+	[ \t\r]+	ADVANCE;
+	\n			BEGIN( P_PPC ); NEWLINE;
+	.			yymsg("WARNING: Unknown Character");
+}
+
+<P_HASH>{
+	[^\\\n]+		qstr << yytext; ADVANCE;
+	\\[^\n]			qstr << yytext; ADVANCE;
+	\\\n			qstr << "\n"; NEWLINE;
+	\n				NEWLINE; BEGIN( P_PPC ); VALUE( PPC_HASHDATA, ASTString(qstr.str(), yylloc));
+}
+
  /* Error */
-.		yymsg("WARNING: Unknown Character");
+.			yymsg("WARNING: Unknown Character");
 
 %%
 
@@ -428,4 +513,8 @@ void resetLexer() {
 	YY_FLUSH_BUFFER;
 	yyrow = 1;
 	yycol = 1;
+}
+
+void setState(int state) {
+	BEGIN( state );
 }

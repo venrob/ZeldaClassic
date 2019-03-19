@@ -4,6 +4,7 @@
 #include "CompilerUtils.h"
 #include "DataStructs.h"
 #include "Scope.h"
+#include "PPC.cpp"
 
 #include <assert.h>
 #include <sstream>
@@ -230,6 +231,53 @@ void ASTString::execute(ASTVisitor& visitor, void* param)
 {
 	visitor.caseString(*this, param);
 }
+
+void ASTString::setValue(std::string other)
+{
+	str = other;
+}
+
+void ASTString::append(std::string other)
+{
+	str.append(other);
+}
+
+void ASTString::replace(std::string key, std::string body)
+{
+	size_t pos = 0;
+	while ((pos = str.find(key, pos)) != std::string::npos) {
+		 str.replace(pos, key.length(), body);
+		 pos += body.length();
+	}
+}
+
+/*void ASTString::regexreplace(std::string reg, std::string replPattern)
+{
+	//std::regex_replace(str, re, replPattern);
+	POSIX::Regex re;
+	re.compile(reg);
+	for(int startindex = 0; startindex < str.length();)
+	{
+		POSIX::Match m = re.match(str.substr(startindex));
+		if(!m.numGroups()) return;
+		ASTString* temp = new ASTString(replPattern);
+		for(int q = m.numGroups(); q > 0; --q)
+		{
+			int start = m.start(q);
+			int end = m.end(q);
+			std::string match = m.group(q);
+			
+			//$#
+			std::stringstream strtemp;
+			strtemp << "$" << q;
+			
+			//Replace $# with matched group
+			temp->replace(strtemp.str(), match);
+		}
+		str.replace(m.start(0) + startindex, m.end(0) + startindex, temp->getValue());
+		startindex += m.end(0);
+	}
+}*/
 
 // ASTSetOption
 

@@ -47,17 +47,17 @@ ScriptsData* ZScript::compile(string const& filename)
 {
     ScriptParser::initialize();
 
-	box_out("Pass 1: Parsing");
+	box_out("Pass 0: Preprocessing");
 	box_eol();
 
-	auto_ptr<ASTFile> root(parseFile(filename));
+	auto_ptr<ASTFile> root(parseRoot(filename)); //"Pass 1: Parsing" is in this function, from "ffscript.ypp" -V
 	if (!root.get())
 	{
 		box_out_err(CompileError::CantOpenSource(NULL));
 		return NULL;
 	}
     
-	box_out("Pass 2: Preprocessing");
+	box_out("Pass 2: Processing");
 	box_eol();
     
 	if (!ScriptParser::preprocess(root.get(), ScriptParser::recursionLimit))

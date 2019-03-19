@@ -307,6 +307,10 @@ namespace ZScript
 		void execute(ASTVisitor& visitor, void* param = NULL);
 
 		std::string getValue() const {return str;}
+		void setValue(std::string other);
+		void append(std::string other);
+		void replace(std::string key, std::string body);
+		//void regexreplace(std::string reg, std::string replPattern);
 	private:
 		std::string str;
 	};
