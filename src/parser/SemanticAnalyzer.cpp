@@ -284,9 +284,34 @@ void SemanticAnalyzer::caseDataEnum(ASTDataEnum& host, void*)
 		handleError(CompileError::RefVar(&host, baseType.getName()));
 		return;
 	}
+	//Handle enumeration
+	long next = 0;
+	std::vector<ASTDataDecl*> decls = host.getDeclarations();
+	for(std::vector<ASTDataDecl*>::iterator it = decls.begin();
+		it != decls.end(); ++it)
+	{
+		ASTDataDecl decl = **it;
+		if(ASTExpr* init = decl.getInitializer())
+		{
+			if(init->getCompileTimeValue())
+			{
+				next = *init->getCompileTimeValue() / 10000;
+			}
+			else
+			{
+				handleError(CompileError::EnumNonConstant(&host));
+			}
+		}
+		else
+		{
+			ASTNumberLiteral* value = new ASTNumberLiteral(new ASTFloat(next, ASTFloat::TYPE_DECIMAL, host.location), host.location);
+			decl.setInitializer(value);
+		}
+		++next;
+	}
 
 	// Recurse on list contents.
-	visit(host, host.getDeclarations());
+	visit(host, decls);
 }
 
 void SemanticAnalyzer::caseDataDecl(ASTDataDecl& host, void*)

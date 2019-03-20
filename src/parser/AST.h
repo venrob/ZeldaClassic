@@ -620,7 +620,7 @@ namespace ZScript
 
 		std::vector<ASTDataDecl*> const& getDeclarations() const {
 			return declarations_.data();}
-		virtual void addDeclaration(ASTDataDecl* declaration);
+		void addDeclaration(ASTDataDecl* declaration);
 
 		// The base type at the start of the line shared by all the declarations.
 		owning_ptr<ASTDataType> baseType;
@@ -637,9 +637,6 @@ namespace ZScript
 		ASTDataEnum* clone() const {return new ASTDataEnum(*this);}
 
 		void execute(ASTVisitor& visitor, void* param = NULL);
-		virtual void addDeclaration(ASTDataDecl* declaration);
-	private:
-		long nextVal;
 	};
 
 	// Declares a single variable or constant. May or may not be inside an

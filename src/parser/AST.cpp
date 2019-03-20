@@ -539,7 +539,7 @@ void ASTDataDeclList::addDeclaration(ASTDataDecl* declaration)
 // ASTDataEnum
 
 ASTDataEnum::ASTDataEnum(LocationData const& location)
-	: ASTDataDeclList(location), nextVal(0)
+	: ASTDataDeclList(location)
 {
 	baseType = new ASTDataType(DataType::CFLOAT, location);
 }
@@ -549,13 +549,17 @@ void ASTDataEnum::execute(ASTVisitor& visitor, void* param)
 	visitor.caseDataEnum(*this, param);
 }
 
-void ASTDataEnum::addDeclaration(ASTDataDecl* declaration)
+/*void ASTDataEnum::addDeclaration(ASTDataDecl* declaration)
 {
 	if(ASTExpr* init = declaration->getInitializer())
 	{
 		if(init->getCompileTimeValue())
 		{
 			nextVal = *init->getCompileTimeValue() / 10000;
+		}
+		else
+		{
+			ExprNonAccessible
 		}
 	}
 	else
@@ -565,7 +569,7 @@ void ASTDataEnum::addDeclaration(ASTDataDecl* declaration)
 	}
 	++nextVal;
 	ASTDataDeclList::addDeclaration(declaration);
-}
+}*/
 
 // ASTDataDecl
 
