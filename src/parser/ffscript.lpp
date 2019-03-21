@@ -92,6 +92,7 @@ OPTION_VALUE	TOKEN( OPTIONVALUE );
 "#define"		TOKEN( DEFINE );
 enum			TOKEN( ENUM );
 namespace		TOKEN( NAMESPACE );
+using			TOKEN( USING );
 
  /* Types */
 void		TOKEN( ZVOID );
@@ -132,6 +133,7 @@ link	TOKEN( LINK );
 ","		TOKEN( COMMA );
 "."		TOKEN( DOT );
 ";"		TOKEN( SEMICOLON );
+"::"	TOKEN( SCOPERES );
 ":"		TOKEN( COLON );
 "("		TOKEN( LPAREN );
 ")"		TOKEN( RPAREN );
