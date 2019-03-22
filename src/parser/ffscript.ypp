@@ -342,7 +342,7 @@ Namespace_Statement :
 // Using
 
 Using :
-	USING NAMESPACE Identifier_List {
+	USING NAMESPACE Scoperes_Identifier_List {
 		ASTExprIdentifier* idlist = (ASTExprIdentifier*)$3;
 		$$ = new ASTUsingDecl(idlist, @$);
 	};

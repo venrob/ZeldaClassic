@@ -614,53 +614,53 @@ FileScope::FileScope(Scope* parent, string const& filename)
 	defaultOption_ = CompileOptionSetting::Default;
 }
 
-bool FileScope::addNamespace(vector<std::string> names)
+int FileScope::useNamespace(vector<std::string> names, vector<std::string> delimiters)
 {
 	if (names.size() == 1)
-		addNamespace(names[0]);
+		useNamespace(names[0]);
 	NamespaceScope* namesp = NULL;
+	int numMatches = 0;
 
 	string const& name = names.back();
 
 	vector<string> ancestry(names.begin(), --names.end());
-	vector<Scope*> scopes = lookupScopes(*this, ancestry);
+	vector<Scope*> scopes = lookupScopes(*this, ancestry, delimiters);
 	for (vector<Scope*>::const_iterator it = scopes.begin();
 	     it != scopes.end(); ++it)
 	{
 		Scope& current = **it;
 		Scope* tmp = current.getChild(name);
 		if(!tmp || !tmp->isNamespace()) continue;
-		if(namesp)
-			return false;
 		namesp = static_cast<NamespaceScope*>(tmp);
+		++numMatches;
 	}
 	//
 	for(vector<NamespaceScope*>::iterator it = usingNamespaces.begin();
 		it != usingNamespaces.end(); ++it)
 	{
 		NamespaceScope* scope = *it;
-		vector<Scope*> scopes = lookupScopes(*this, ancestry);
+		vector<Scope*> scopes = lookupScopes(*this, ancestry, delimiters);
 		for (vector<Scope*>::const_iterator it = scopes.begin();
 			 it != scopes.end(); ++it)
 		{
 			Scope& current = **it;
 			if(namesp)
 			{
-				if(current == namesp) return false;
+				if(current == namesp) return -1;
 			}
 			Scope* tmp = current.getChild(name);
 			if(!tmp || !tmp->isNamespace()) continue;
-			if(namesp)
-				return false;
 			namesp = static_cast<NamespaceScope*>(tmp);
+			++numMatches;
 		}
 	}
-	if(!namesp) return false;
-	usingNamespaces.push_back(namesp);
-	return true;
+	if(!namesp) return 0;
+	if(numMatches == 1)
+		usingNamespaces.push_back(namesp);
+	return numMatches;
 }
 
-bool FileScope::addNamespace(std::string name)
+int FileScope::useNamespace(std::string name)
 {
 	NamespaceScope* namesp = NULL;
 	if(Scope* scope = getRoot(*this)->getChild(name))
@@ -674,21 +674,21 @@ bool FileScope::addNamespace(std::string name)
 		NamespaceScope* scope = *it;
 		if(namesp)
 		{
-			if(scope == namesp) return false;
+			if(&scope == &namesp) return -1;
 		}
 		if(Scope* scope2 = scope->getChild(name))
 		{
 			if(scope2->isNamespace())
 			{
 				if(namesp)
-					return false;
+					return -1;
 				namesp = static_cast<NamespaceScope*>(scope2);
 			}
 		}
 	}
-	if(!namesp) return false;
+	if(!namesp) return 0;
 	usingNamespaces.push_back(namesp);
-	return true;
+	return 1;
 }
 
 Scope* FileScope::makeChild(std::string const& name)

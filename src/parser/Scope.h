@@ -375,8 +375,8 @@ namespace ZScript
 		virtual bool isGlobal() const {return true;}
 		virtual bool isFile() const {return true;}
 		
-		bool addNamespace(std::string name);
-		bool addNamespace(std::vector<std::string> names);
+		int useNamespace(std::string name);
+		int useNamespace(std::vector<std::string> names, std::vector<std::string> delimiters);
 		std::vector<NamespaceScope*> getUsingNamespaces() {return usingNamespaces;}
 		
 		// Override to also register in the root scope, and fail if already
@@ -402,14 +402,13 @@ namespace ZScript
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
 				AST* node = NULL);
-
+		
 	protected:
 		virtual bool add(Datum&, CompileErrorHandler*);
 		
 	private:
 		std::string filename_;
 		std::vector<NamespaceScope*> usingNamespaces;
-
 	};
 
 	////////////////////////////////////////////////////////////////

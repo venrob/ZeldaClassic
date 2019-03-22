@@ -125,20 +125,30 @@ void SemanticAnalyzer::caseSetOption(ASTSetOption& host, void*)
 void SemanticAnalyzer::caseUsing(ASTUsingDecl& host, void*)
 {
 	//Handle adding scope
-	if(scope->isFile())
+	FileScope* file = dynamic_cast<FileScope*>(scope);
+	ASTExprIdentifier* iden = host.getIdentifier();
+	vector<string> components = iden->components;
+	int numMatches = file->useNamespace(components, iden->delimiters);
+	if(numMatches > 1)
+		handleError(CompileError::TooManyUsing(&host, iden->asString()));
+	else if(!numMatches)
 	{
-		FileScope* file = static_cast<FileScope*>(scope);
-		if(!file->addNamespace(host.getIdentifier()->components))
+		//handleError(CompileError::NoUsingMatch(&host, iden->asString()));
+		ASTNamespace* first = new ASTNamespace(host.location, components.front());
+		ASTNamespace* current = first;
+		for(vector<string>::iterator it = ++components.begin();
+			it != components.end(); ++it)
 		{
-			handleError(CompileError::BadUsing(&host));
-			return;
+			ASTNamespace* next = new ASTNamespace(host.location, *it);
+			current->namespaces.push_back(next);
+			current = next;
 		}
+		caseNamespace(*first);
+		numMatches = file->useNamespace(components, iden->delimiters);
 	}
-	else
-	{
-		handleError(CompileError::UsingNotFile(&host));
-		return;
-	}
+	//-1 == duplicate; the namespace found had already been added to usingNamespaces for this file! -V
+	else if(numMatches == -1)
+		handleError(CompileError::DuplicateUsing(&host, iden->asString()));
 }
 
 // Statements
