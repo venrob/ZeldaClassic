@@ -77,5 +77,7 @@ X(	RedefScriptType,		T,	A,	E,	STR,	STR,	"Script Type %s has already been defined
 X(	ArrayInvalidSize,		T,	A,	E,	VOID,	VOID,	"An array's size must be between 1 and 214748"	    	      		    			)
 X(	ArrayDecimal,		T,	A,	W,	VOID,	VOID,	"Array sizes containing decimals will be truncated"	    	      		    			)
 X(	ConstNotConstant,			S,	A,	E,	STR,	VOID,	"Constant %s is global or script scope, and the value is not constant at compile-time."				)
+X(	UsingNotFile,			P,	A,	E,	VOID,	VOID,	"'using' may only be used at the file-scope."				)
+X(	BadUsing,				P,	A,	E,	VOID,	VOID,	"'using' found too many or too few matches for the namespace name."				)
 
 #undef STR

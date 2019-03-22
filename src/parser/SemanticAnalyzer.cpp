@@ -122,6 +122,25 @@ void SemanticAnalyzer::caseSetOption(ASTSetOption& host, void*)
 	scope->setOption(host.option, setting);
 }
 
+void SemanticAnalyzer::caseUsing(ASTUsingDecl& host, void*)
+{
+	//Handle adding scope
+	if(scope->isFile())
+	{
+		FileScope* file = static_cast<FileScope*>(scope);
+		if(!file->addNamespace(host.getIdentifier()->components))
+		{
+			handleError(CompileError::BadUsing(&host));
+			return;
+		}
+	}
+	else
+	{
+		handleError(CompileError::UsingNotFile(&host));
+		return;
+	}
+}
+
 // Statements
 
 void SemanticAnalyzer::caseBlock(ASTBlock& host, void*)

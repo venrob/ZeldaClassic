@@ -41,6 +41,8 @@ namespace ZScript
 
 	////////////////////////////////////////////////////////////////
 	
+	static int ScopeID = 0;
+
 	class Scope : private NoCopy
 	{
 		// So Datum classes can only be generated in tandem with a scope.
@@ -49,12 +51,13 @@ namespace ZScript
 	public:
 		Scope(TypeStore&);
 		Scope(TypeStore&, std::string const& name);
-
+		
 		// Scope type.
 		virtual bool isGlobal() const {return false;}
 		virtual bool isScript() const {return false;}
 		virtual bool isFunction() const {return false;}
 		virtual bool isNamespace() const {return false;}
+		virtual bool isFile() const {return false;}
 		virtual bool isNamedEnum() const {return false;}
 		
 		// Accessors
@@ -67,6 +70,7 @@ namespace ZScript
 		virtual Scope* getParent() const = 0;
 		virtual Scope* getChild(std::string const& name) const = 0;
 		virtual std::vector<Scope*> getChildren() const = 0;
+		virtual Scope* getFile() const = 0;
 	
 		// Lookup Local
 		virtual DataType const* getLocalDataType(std::string const& name)
@@ -141,15 +145,20 @@ namespace ZScript
 		// Get the stack offset for this local datum.
 		virtual optional<int> getLocalStackOffset(Datum const&) const {
 			return nullopt;}
+			
+		//
+		bool operator==(Scope* other) {return id == other->getId();}
 		
 	protected:
 		TypeStore& typeStore_;
 		optional<std::string> name_;
+		long getId() const {return id;}
 
 	private:
 		// Add the datum to this scope, returning if successful. Called by
 		// the Datum classes' ::create functions.
 		virtual bool add(ZScript::Datum&, CompileErrorHandler*) = 0;
+		long id;
 	};
 
 	////////////////
@@ -266,6 +275,7 @@ namespace ZScript
 		virtual Scope* getParent() const {return parent_;}
 		virtual Scope* getChild(std::string const& name) const;
 		virtual std::vector<Scope*> getChildren() const;
+		virtual Scope* getFile() const;
 	
 		// Lookup Local
 		DataType const* getLocalDataType(std::string const& name)
@@ -360,7 +370,14 @@ namespace ZScript
 	public:
 		FileScope(Scope* parent, std::string const& filename);
 
+		Scope* getFile() {return this;}
+		
 		virtual bool isGlobal() const {return true;}
+		virtual bool isFile() const {return true;}
+		
+		bool addNamespace(std::string name);
+		bool addNamespace(std::vector<std::string> names);
+		std::vector<NamespaceScope*> getUsingNamespaces() {return usingNamespaces;}
 		
 		// Override to also register in the root scope, and fail if already
 		// present there as well.
@@ -391,6 +408,7 @@ namespace ZScript
 		
 	private:
 		std::string filename_;
+		std::vector<NamespaceScope*> usingNamespaces;
 
 	};
 
@@ -481,6 +499,7 @@ namespace ZScript
 	{
 	public:
 		NamespaceScope(Scope* parent, Namespace* namesp);
+		virtual bool isGlobal() const {return true;}
 		virtual bool isNamespace() const {return true;};
 		Namespace* namesp;
 	};
