@@ -80,5 +80,6 @@ X(	ConstNotConstant,			S,	A,	E,	STR,	VOID,	"Constant %s is global or script scop
 X(	TooManyUsing,				P,	A,	E,	STR,	VOID,	"'using' found too many matches for the namespace %s."				)
 X(	NoUsingMatch,				P,	A,	E,	STR,	VOID,	"'using' found no matches for the namespace %s."				)
 X(	DuplicateUsing,				P,	A,	E,	STR,	VOID,	"Namespace %s is already being used!"				)
+X(	TooManyVar,				P,	A,	E,	STR,	VOID,	"There are too many vars/consts named %s. Check your 'using' statements."				)
 
 #undef STR

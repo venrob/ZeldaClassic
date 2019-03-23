@@ -90,6 +90,8 @@ namespace ZScript
 		ZScript::Program& program;
 		// Current scope.
 		ZScript::Scope* scope;
+		// Current File Scope
+		ZScript::FileScope* file;
 		// Current function return type.
 		ZScript::DataType const* returnType;
 

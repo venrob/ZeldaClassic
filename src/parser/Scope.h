@@ -15,6 +15,7 @@ namespace ZScript
 	// AST.h
 	class AST;
 	class ASTNamespace;
+	class ASTExprIdentifier;
 
 	// CompileError.h
 	class CompileErrorHandler;
@@ -54,6 +55,7 @@ namespace ZScript
 		
 		// Scope type.
 		virtual bool isGlobal() const {return false;}
+		virtual bool isRoot() const {return false;}
 		virtual bool isScript() const {return false;}
 		virtual bool isFunction() const {return false;}
 		virtual bool isNamespace() const {return false;}
@@ -70,7 +72,7 @@ namespace ZScript
 		virtual Scope* getParent() const = 0;
 		virtual Scope* getChild(std::string const& name) const = 0;
 		virtual std::vector<Scope*> getChildren() const = 0;
-		virtual Scope* getFile() const = 0;
+		virtual FileScope* getFile() const = 0;
 	
 		// Lookup Local
 		virtual DataType const* getLocalDataType(std::string const& name)
@@ -196,8 +198,8 @@ namespace ZScript
 	ZClass* lookupClass(Scope const&, std::string const& name);
 
 	// Attempt to resolve name to a variable under scope.
-	Datum* lookupDatum(Scope const&, std::string const& name);
-	Datum* lookupDatum(Scope const&, std::vector<std::string> const& name, std::vector<std::string> const& delimiters);
+	Datum* lookupDatum(Scope const&, std::string const& name, ASTExprIdentifier& host, CompileErrorHandler* errorHandler, bool useNamespace = false);
+	Datum* lookupDatum(Scope const&, ASTExprIdentifier& host, CompileErrorHandler* errorHandler);
 	
 	// Attempt to resolve name to a getter under scope.
 	Function* lookupGetter(Scope const&, std::string const& name);
@@ -267,15 +269,15 @@ namespace ZScript
 	class BasicScope : public Scope
 	{
 	public:
-		BasicScope(Scope* parent);
-		BasicScope(Scope* parent, std::string const& name);
+		BasicScope(Scope* parent, FileScope* parentFile);
+		BasicScope(Scope* parent, FileScope* parentFile, std::string const& name);
 		virtual ~BasicScope();
 
 		// Inheritance
 		virtual Scope* getParent() const {return parent_;}
 		virtual Scope* getChild(std::string const& name) const;
 		virtual std::vector<Scope*> getChildren() const;
-		virtual Scope* getFile() const;
+		virtual FileScope* getFile() const {return parentFile_;}
 	
 		// Lookup Local
 		DataType const* getLocalDataType(std::string const& name)
@@ -335,6 +337,7 @@ namespace ZScript
 		
 	protected:
 		Scope* parent_;
+		FileScope* parentFile_;
 		std::map<std::string, Scope*> children_;
 		std::vector<Scope*> anonymousChildren_;
 		std::map<std::string, DataType const*> dataTypes_;
@@ -368,16 +371,15 @@ namespace ZScript
 	class FileScope : public BasicScope
 	{
 	public:
-		FileScope(Scope* parent, std::string const& filename);
+		FileScope(Scope* parent, FileScope* parentFile, std::string const& filename);
 
-		Scope* getFile() {return this;}
+		FileScope* getFile() {return this;}
 		
 		virtual bool isGlobal() const {return true;}
 		virtual bool isFile() const {return true;}
 		
 		int useNamespace(std::string name);
 		int useNamespace(std::vector<std::string> names, std::vector<std::string> delimiters);
-		std::vector<NamespaceScope*> getUsingNamespaces() {return usingNamespaces;}
 		
 		// Override to also register in the root scope, and fail if already
 		// present there as well.
@@ -403,12 +405,13 @@ namespace ZScript
 				std::vector<DataType const*> const& paramTypes,
 				AST* node = NULL);
 		
+		std::vector<NamespaceScope*> usingNamespaces;
+		
 	protected:
 		virtual bool add(Datum&, CompileErrorHandler*);
 		
 	private:
 		std::string filename_;
-		std::vector<NamespaceScope*> usingNamespaces;
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -425,6 +428,7 @@ namespace ZScript
 		RootScope(TypeStore&);
 		
 		virtual bool isGlobal() const {return true;}
+		virtual bool isRoot() const {return true;}
 		virtual optional<int> getRootStackSize() const;
 
 		// Also check the descendant listings.
@@ -478,7 +482,7 @@ namespace ZScript
 	class ScriptScope : public BasicScope
 	{
 	public:
-		ScriptScope(Scope* parent, Script& script);
+		ScriptScope(Scope* parent, FileScope* parentFile, Script& script);
 		virtual bool isScript() const {return true;}
 		Script& script;
 	};
@@ -486,7 +490,7 @@ namespace ZScript
 	class FunctionScope : public BasicScope
 	{
 	public:
-		FunctionScope(Scope* parent, Function& function);
+		FunctionScope(Scope* parent, FileScope* parentFile, Function& function);
 		bool isFunction() const {return true;}
 		Function& function;
 		optional<int> getRootStackSize() const;
@@ -497,7 +501,7 @@ namespace ZScript
 	class NamespaceScope : public BasicScope
 	{
 	public:
-		NamespaceScope(Scope* parent, Namespace* namesp);
+		NamespaceScope(Scope* parent, FileScope* parentFile, Namespace* namesp);
 		virtual bool isGlobal() const {return true;}
 		virtual bool isNamespace() const {return true;};
 		Namespace* namesp;

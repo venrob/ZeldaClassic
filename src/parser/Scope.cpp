@@ -33,7 +33,7 @@ void Scope::invalidateStackSize()
 
 // Inheritance
 
-Scope* ZScript::getDescendant(Scope const& scope, vector<string> const& names, std::vector<std::string> const& delimiters)
+Scope* ZScript::getDescendant(Scope const& scope, vector<string> const& names, vector<string> const& delimiters)
 {
 	Scope* child = const_cast<Scope*>(&scope);
 	vector<string>::const_iterator del = delimiters.begin();
@@ -43,7 +43,7 @@ Scope* ZScript::getDescendant(Scope const& scope, vector<string> const& names, s
 		child = child->getChild(*it);
 		string str = *del;
 		//Only allow `.` for scripts, and `::` for namespaces, when delimiting scope. -V
-		if(child->isScript() && str.compare(".") || child->isNamespace() && str.compare("::"))
+		if(!child || (child->isScript() && str.compare(".")) || (child->isNamespace() && str.compare("::")))
 			return NULL;
 		++del;
 	}
@@ -134,25 +134,56 @@ ZClass* ZScript::lookupClass(Scope const& scope, string const& name)
 	return NULL;
 }
 
-Datum* ZScript::lookupDatum(Scope const& scope, string const& name)
+Datum* ZScript::lookupDatum(Scope const& scope, std::string const& name, ASTExprIdentifier& host, CompileErrorHandler* errorHandler, bool useNamespace)
 {
+	Datum* datum = NULL;
 	for (Scope const* current = &scope;
 	     current; current = current->getParent())
-		if (Datum* datum = current->getLocalDatum(name))
-			return datum;
-	return NULL;
+	{
+		Datum* temp = current->getLocalDatum(name);
+		if(!datum)
+		{
+			//Only continue if this var was found at the file scope or higher.
+			if(current->isFile() || current->isRoot())
+				datum = temp;
+			else if(temp)
+				return temp;
+		}
+		else if(temp)
+		{
+			if(&datum != &temp)
+				errorHandler->handleError(CompileError::TooManyVar(&host, name));
+		}
+	}
+	if(!useNamespace) return datum; //End early
+	//Get the file scope's `using` namespace scopes, and check them as well
+	vector<NamespaceScope*> namespaces = scope->getFile()->usingNamespaces;
+	for(vector<NamespaceScope*>::iterator it = namespaces.begin();
+		it != namespaces.end(); ++it)
+	{
+		NamespaceScope* nsscope = *it;
+		Datum* temp = nsscope->getLocalDatum(name);
+		if(!datum)
+			datum = temp;
+		else if(temp)
+		{
+			if(&datum != &temp)
+				errorHandler->handleError(CompileError::TooManyVar(&host, name));
+		}
+	}
+	return datum;
 }
 
-Datum* ZScript::lookupDatum(Scope const& scope, vector<string> const& names, std::vector<std::string> const& delimiters)
+Datum* ZScript::lookupDatum(Scope const& scope, ASTExprIdentifier& host, CompileErrorHandler* errorHandler)
 {
+	vector<string> names = host.components;
 	if (names.size() == 0)
 		return NULL;
 	else if (names.size() == 1)
-		return lookupDatum(scope, names[0]);
-
+		return lookupDatum(scope, names[0], host, errorHandler, true);
 	vector<string> childNames(names.begin(), --names.end());
-	if (Scope* child = lookupScope(scope, childNames, delimiters))
-		return lookupDatum(*child, names.back());
+	if (Scope* child = lookupScope(scope, childNames, host.delimiters))
+		return lookupDatum(*child, names.back(), host, errorHandler);
 
 	return NULL;
 }
@@ -190,16 +221,13 @@ vector<Function*> ZScript::lookupFunctions(Scope const& scope, string const& nam
 	set<Function*> functions;
 	Scope const* current = &scope;
 	//Get the file scope's `using` namespace scopes, and any functions from them
-	if(FileScope* file = static_cast<FileScope*>(current->getFile()))
+	vector<NamespaceScope*> namespaces = scope.getFile()->usingNamespaces;
+	for(vector<NamespaceScope*>::iterator it = namespaces.begin();
+		it != namespaces.end(); ++it)
 	{
-		vector<NamespaceScope*> namespaces = file->getUsingNamespaces();
-		for(vector<NamespaceScope*>::iterator it = namespaces.begin();
-			it != namespaces.end(); ++it)
-		{
-			NamespaceScope* nsscope = *it;
-			vector<Function*> currentFunctions = nsscope->getLocalFunctions(name);
-			functions.insert(currentFunctions.begin(), currentFunctions.end());
-		}
+		NamespaceScope* nsscope = *it;
+		vector<Function*> currentFunctions = nsscope->getLocalFunctions(name);
+		functions.insert(currentFunctions.begin(), currentFunctions.end());
 	}
 	//Standard lookup loop
 	for (; current; current = current->getParent())
@@ -308,14 +336,14 @@ vector<Function*> ZScript::getFunctionsInBranch(Scope const& scope)
 ////////////////////////////////////////////////////////////////
 // Basic Scope
 
-BasicScope::BasicScope(Scope* parent)
-	: Scope(parent->getTypeStore()), parent_(parent),
+BasicScope::BasicScope(Scope* parent, FileScope* parentFile)
+	: Scope(parent->getTypeStore()), parent_(parent), parentFile_(parentFile),
 	  stackDepth_(parent->getLocalStackDepth()),
 	  defaultOption_(CompileOptionSetting::Inherit)
 {}
 
-BasicScope::BasicScope(Scope* parent, string const& name)
-	: Scope(parent->getTypeStore(), name), parent_(parent),
+BasicScope::BasicScope(Scope* parent, FileScope* parentFile, string const& name)
+	: Scope(parent->getTypeStore(), name), parent_(parent), parentFile_(parentFile),
 	  stackDepth_(parent->getLocalStackDepth()),
 	  defaultOption_(CompileOptionSetting::Inherit)
 {}
@@ -353,18 +381,6 @@ vector<Scope*> BasicScope::getChildren() const
 	vector<Scope*> results = anonymousChildren_;
 	appendElements(results, getSeconds<Scope*>(children_));
 	return results;
-}
-
-Scope* BasicScope::getFile() const
-{
-	for(Scope* current = getParent(); current; current = current->getParent())
-	{
-		if(FileScope* scope = dynamic_cast<FileScope*>(current))
-		{
-			return scope;
-		}
-	}
-	return NULL;
 }
 
 // Lookup Local
@@ -452,7 +468,7 @@ map<CompileOption, CompileOptionSetting> BasicScope::getLocalOptions() const
 
 Scope* BasicScope::makeChild()
 {
-	Scope* child = new BasicScope(this);
+	Scope* child = new BasicScope(this, getFile());
 	anonymousChildren_.push_back(child);
 	return child;
 }
@@ -460,14 +476,14 @@ Scope* BasicScope::makeChild()
 Scope* BasicScope::makeChild(string const& name)
 {
 	if (find<Scope*>(children_, name)) return NULL;
-	Scope* child = new BasicScope(this, name);
+	Scope* child = new BasicScope(this, getFile(), name);
 	children_[name] = child;
 	return child;
 }
 
 FileScope* BasicScope::makeFileChild(string const& filename)
 {
-	FileScope* child = new FileScope(this, filename);
+	FileScope* child = new FileScope(this, getFile(), filename);
 	anonymousChildren_.push_back(child);
 	return child;
 }
@@ -476,7 +492,7 @@ ScriptScope* BasicScope::makeScriptChild(Script& script)
 {
 	string name = script.getName();
 	if (find<Scope*>(children_, name)) return NULL;
-	ScriptScope* child = new ScriptScope(this, script);
+	ScriptScope* child = new ScriptScope(this, getFile(), script);
 	children_[name] = child;
 	return child;
 }
@@ -490,7 +506,7 @@ NamespaceScope* BasicScope::makeNamespaceChild(ASTNamespace& node)
 		else return NULL;
 	}
 	Namespace* namesp = new Namespace(node);
-	NamespaceScope* result = new NamespaceScope(this, namesp);
+	NamespaceScope* result = new NamespaceScope(this, getFile(), namesp);
 	namesp->setScope(result);
 	children_[name] = result;
 	return result;
@@ -498,7 +514,7 @@ NamespaceScope* BasicScope::makeNamespaceChild(ASTNamespace& node)
 
 FunctionScope* BasicScope::makeFunctionChild(Function& function)
 {
-	FunctionScope* child = new FunctionScope(this, function);
+	FunctionScope* child = new FunctionScope(this, getFile(), function);
 	anonymousChildren_.push_back(child);
 	return child;
 }
@@ -608,8 +624,8 @@ optional<int> BasicScope::getLocalStackOffset(Datum const& datum) const
 ////////////////////////////////////////////////////////////////
 // FileScope
 
-FileScope::FileScope(Scope* parent, string const& filename)
-	: BasicScope(parent), filename_(filename)
+FileScope::FileScope(Scope* parent, FileScope* parentFile, string const& filename)
+	: BasicScope(parent, parentFile), filename_(filename)
 {
 	defaultOption_ = CompileOptionSetting::Default;
 }
@@ -731,7 +747,7 @@ NamespaceScope* FileScope::makeNamespaceChild(ASTNamespace& node)
 		else return NULL;
 	}
 	Namespace* namesp = new Namespace(node);
-	NamespaceScope* result = new NamespaceScope(getRoot(*this), namesp);
+	NamespaceScope* result = new NamespaceScope(getRoot(*this), getFile(), namesp);
 	namesp->setScope(result);
 	children_[name] = result;
 	getRoot(*this)->registerChild(name, result);
@@ -1059,15 +1075,15 @@ bool RootScope::registerFunction(Function* function)
 ////////////////////////////////////////////////////////////////
 // ScriptScope
 
-ScriptScope::ScriptScope(Scope* parent, Script& script)
-	: BasicScope(parent, script.getName()), script(script)
+ScriptScope::ScriptScope(Scope* parent, FileScope* parentFile, Script& script)
+	: BasicScope(parent, parentFile, script.getName()), script(script)
 {}
 
 ////////////////////////////////////////////////////////////////
 // FunctionScope
 
-FunctionScope::FunctionScope(Scope* parent, Function& function)
-	: BasicScope(parent, function.name), function(function)
+FunctionScope::FunctionScope(Scope* parent, FileScope* parentFile, Function& function)
+	: BasicScope(parent, parentFile, function.name), function(function)
 {
 	// Functions have their own stack.
 	stackDepth_ = 0;
@@ -1086,8 +1102,8 @@ optional<int> FunctionScope::getRootStackSize() const
 ////////////////////////////////////////////////////////////////
 // NamespaceScope
 
-NamespaceScope::NamespaceScope(Scope* parent, Namespace* namesp)
-	: BasicScope(parent, namesp->getName()), namesp(namesp)
+NamespaceScope::NamespaceScope(Scope* parent, FileScope* parentFile, Namespace* namesp)
+	: BasicScope(parent, parentFile, namesp->getName()), namesp(namesp)
 {}
 
 ////////////////////////////////////////////////////////////////

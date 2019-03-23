@@ -22,6 +22,7 @@ namespace ZScript
 	class Function;
 	class Scope;
 	class RootScope;
+	class FileScope;
 	class ScriptScope;
 	class NamespaceScope;
 	class FunctionScope;

@@ -89,9 +89,14 @@ void SemanticAnalyzer::analyzeFunctionInternals(Function& function)
 
 void SemanticAnalyzer::caseFile(ASTFile& host, void*)
 {
-	scope = scope->makeFileChild(host.asString());
+	FileScope* temp = file;
+	//Set current FileScope, for use with namespaces -V
+	file = scope->makeFileChild(host.asString());
+	scope = file;
 	RecursiveVisitor::caseFile(host);
+	//Restore previous scope
 	scope = scope->getParent();
+	if(temp) file = temp;
 }
 
 void SemanticAnalyzer::caseSetOption(ASTSetOption& host, void*)
@@ -605,7 +610,7 @@ void SemanticAnalyzer::caseExprIdentifier(
 		ASTExprIdentifier& host, void* param)
 {
 	// Bind to named variable.
-	host.binding = lookupDatum(*scope, host.components, host.delimiters);
+	host.binding = lookupDatum(*scope, host, this);
 	if (!host.binding)
 	{
 		handleError(CompileError::VarUndeclared(&host, host.asString()));
