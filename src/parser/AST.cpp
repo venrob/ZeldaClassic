@@ -474,6 +474,9 @@ void ASTScript::addDeclaration(ASTDecl& declaration)
 	case ASTDecl::TYPE_DATATYPE:
 		types.push_back(static_cast<ASTDataTypeDef*>(&declaration));
 		break;
+	case ASTDecl::TYPE_USING:
+		use.push_back(static_cast<ASTUsingDecl*>(&declaration));
+		break;
 	}
 }
 

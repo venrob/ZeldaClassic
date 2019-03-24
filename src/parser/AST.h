@@ -569,6 +569,7 @@ namespace ZScript
 		owning_vector<ASTDataDeclList> variables;
 		owning_vector<ASTFuncDecl> functions;
 		owning_vector<ASTDataTypeDef> types;
+		owning_vector<ASTUsingDecl> use;
 	};
 
 	class ASTNamespace : public ASTDecl

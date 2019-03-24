@@ -142,10 +142,9 @@ void SemanticAnalyzer::caseSetOption(ASTSetOption& host, void*)
 void SemanticAnalyzer::caseUsing(ASTUsingDecl& host, void*)
 {
 	//Handle adding scope
-	FileScope* file = dynamic_cast<FileScope*>(scope);
 	ASTExprIdentifier* iden = host.getIdentifier();
 	vector<string> components = iden->components;
-	int numMatches = file->useNamespace(components, iden->delimiters);
+	int numMatches = scope->useNamespace(components, iden->delimiters);
 	if(numMatches > 1)
 		handleError(CompileError::TooManyUsing(&host, iden->asString()));
 	else if(!numMatches)
@@ -161,9 +160,9 @@ void SemanticAnalyzer::caseUsing(ASTUsingDecl& host, void*)
 			current = next;
 		}
 		caseNamespace(*first);
-		numMatches = file->useNamespace(components, iden->delimiters);
+		numMatches = scope->useNamespace(components, iden->delimiters);
 	}
-	//-1 == duplicate; the namespace found had already been added to usingNamespaces for this file! -V
+	//-1 == duplicate; the namespace found had already been added to usingNamespaces for this scope! -V
 	else if(numMatches == -1)
 		handleError(CompileError::DuplicateUsing(&host, iden->asString()));
 }

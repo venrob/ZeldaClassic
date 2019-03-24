@@ -171,6 +171,8 @@ void RecursiveVisitor::caseScript(ASTScript& host, void* param)
 	if (breakRecursion(host, param)) return;
 	visit(host, host.options, param);
 	if (breakRecursion(host, param)) return;
+	visit(host, host.use, param);
+	if (breakRecursion(host, param)) return;
 	visit(host, host.types, param);
 	if (breakRecursion(host, param)) return;
 	visit(host, host.variables, param);
