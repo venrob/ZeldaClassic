@@ -212,7 +212,7 @@ namespace ZScript
 	
 	// Attempt to resolve name to possible functions under scope.
 	std::vector<Function*> lookupFunctions(
-			Scope const&, std::string const& name);
+			Scope const&, std::string const& name, bool useNamespace = false);
 	std::vector<Function*> lookupFunctions(
 			Scope const&, std::vector<std::string> const& name, std::vector<std::string> const& delimiters);
 
@@ -371,7 +371,7 @@ namespace ZScript
 	class FileScope : public BasicScope
 	{
 	public:
-		FileScope(Scope* parent, FileScope* parentFile, std::string const& filename);
+		FileScope(Scope* parent, std::string const& filename);
 
 		FileScope* getFile() {return this;}
 		
@@ -380,6 +380,7 @@ namespace ZScript
 		
 		int useNamespace(std::string name);
 		int useNamespace(std::vector<std::string> names, std::vector<std::string> delimiters);
+		void setFile() {parentFile_ = this;}
 		
 		// Override to also register in the root scope, and fail if already
 		// present there as well.

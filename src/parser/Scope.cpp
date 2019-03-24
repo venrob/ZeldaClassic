@@ -157,7 +157,8 @@ Datum* ZScript::lookupDatum(Scope const& scope, std::string const& name, ASTExpr
 	}
 	if(!useNamespace) return datum; //End early
 	//Get the file scope's `using` namespace scopes, and check them as well
-	vector<NamespaceScope*> namespaces = scope->getFile()->usingNamespaces;
+	FileScope* file = scope.getFile();
+	vector<NamespaceScope*> namespaces = file->usingNamespaces;
 	for(vector<NamespaceScope*>::iterator it = namespaces.begin();
 		it != namespaces.end(); ++it)
 	{
@@ -216,18 +217,21 @@ Function* ZScript::lookupFunction(Scope const& scope,
 	return NULL;
 }
 
-vector<Function*> ZScript::lookupFunctions(Scope const& scope, string const& name)
+vector<Function*> ZScript::lookupFunctions(Scope const& scope, string const& name, bool useNamespace)
 {
 	set<Function*> functions;
 	Scope const* current = &scope;
-	//Get the file scope's `using` namespace scopes, and any functions from them
-	vector<NamespaceScope*> namespaces = scope.getFile()->usingNamespaces;
-	for(vector<NamespaceScope*>::iterator it = namespaces.begin();
-		it != namespaces.end(); ++it)
+	if(useNamespace)
 	{
-		NamespaceScope* nsscope = *it;
-		vector<Function*> currentFunctions = nsscope->getLocalFunctions(name);
-		functions.insert(currentFunctions.begin(), currentFunctions.end());
+		//Get the file scope's `using` namespace scopes, and any functions from them
+		vector<NamespaceScope*> namespaces = scope.getFile()->usingNamespaces;
+		for(vector<NamespaceScope*>::iterator it = namespaces.begin();
+			it != namespaces.end(); ++it)
+		{
+			NamespaceScope* nsscope = *it;
+			vector<Function*> currentFunctions = nsscope->getLocalFunctions(name);
+			functions.insert(currentFunctions.begin(), currentFunctions.end());
+		}
 	}
 	//Standard lookup loop
 	for (; current; current = current->getParent())
@@ -244,7 +248,7 @@ vector<Function*> ZScript::lookupFunctions(
 	if (names.size() == 0)
 		return vector<Function*>();
 	else if (names.size() == 1)
-		return lookupFunctions(scope, names[0]);
+		return lookupFunctions(scope, names[0], true);
 
 	vector<Function*> functions;
 	string const& name = names.back();
@@ -483,7 +487,10 @@ Scope* BasicScope::makeChild(string const& name)
 
 FileScope* BasicScope::makeFileChild(string const& filename)
 {
-	FileScope* child = new FileScope(this, getFile(), filename);
+	FileScope* child = new FileScope(this, filename);
+	//parentFile_ for a FileScope should be the FileScope itself, but this cannot be done within the constructor.
+	//Thus, `setFile()` must be called AFTER the constructor, to set this correctly. Not doing so causes invalid data, and crashes. -V
+	child->setFile();
 	anonymousChildren_.push_back(child);
 	return child;
 }
@@ -624,8 +631,8 @@ optional<int> BasicScope::getLocalStackOffset(Datum const& datum) const
 ////////////////////////////////////////////////////////////////
 // FileScope
 
-FileScope::FileScope(Scope* parent, FileScope* parentFile, string const& filename)
-	: BasicScope(parent, parentFile), filename_(filename)
+FileScope::FileScope(Scope* parent, string const& filename)
+	: BasicScope(parent, NULL), filename_(filename)
 {
 	defaultOption_ = CompileOptionSetting::Default;
 }

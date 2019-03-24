@@ -45,6 +45,18 @@ SemanticAnalyzer::SemanticAnalyzer(Program& program)
 			analyzeFunctionInternals(**it);
 		scope = scope->getParent();
 	}
+	
+	for (vector<Namespace*>::iterator it = program.namespaces.begin();
+		 it != program.namespaces.end(); ++it)
+	{
+		Namespace& namesp = **it;
+		scope = &namesp.getScope();
+		functions = scope->getLocalFunctions();
+		for (vector<Function*>::iterator it = functions.begin();
+		     it != functions.end(); ++it)
+			analyzeFunctionInternals(**it);
+		scope = scope->getParent();
+	}
 }
 
 void SemanticAnalyzer::analyzeFunctionInternals(Function& function)
