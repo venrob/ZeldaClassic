@@ -196,7 +196,8 @@ namespace ZScript
 	// Lookup
 
 	// Attempt to resolve name to a type id under scope.
-	DataType const* lookupDataType(Scope const&, std::string const& name);
+	DataType const* lookupDataType(Scope const&, std::string const& name, bool useNamespace = false);
+	DataType const* lookupDataType(Scope const&, ASTIdentifier& host, CompileErrorHandler* errorHandler);
 	
 	// Attempt to resolve name to a script type id under scope.
 	ScriptType lookupScriptType(Scope const&, std::string const& name);

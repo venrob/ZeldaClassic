@@ -463,9 +463,9 @@ DataType : ZCONST DataType {
 	| TUNE {$$ = new ASTDataType(DataType::TUNES, @$);}
 	| WARPRING	{$$ = new ASTDataType(DataType::WARPRING, @$);}
 	//Typedef types
-	| IDENTIFIER {
-			ASTString *name = (ASTString*)$1;
-			$$ = new ASTDataType(DataTypeUnresolved(name->getValue()), @$);
+	| Identifier_List {
+			ASTExprIdentifier *name = (ASTExprIdentifier*)$1;
+			$$ = new ASTDataType(DataTypeUnresolved(name), @$);
 			delete name;}
 	;
 

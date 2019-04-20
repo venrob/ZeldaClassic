@@ -379,7 +379,7 @@ int ZScript::getArrayDepth(DataType const& type)
 
 DataType* DataTypeUnresolved::resolve(Scope& scope)
 {
-	if (DataType const* type = lookupDataType(scope, name))
+	if (DataType const* type = lookupDataType(scope, *iden))
 		return type->clone();
 	return NULL;
 }

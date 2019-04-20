@@ -130,13 +130,59 @@ RootScope* ZScript::getRoot(Scope const& scope)
 // Lookup
 
 DataType const* ZScript::lookupDataType(
-	Scope const& scope, string const& name)
+	Scope const& scope, string const& name, bool useNamespace)
 {
-	for (Scope const* current = &scope;
-	     current; current = current->getParent())
-		if (DataType const* type = current->getLocalDataType(name))
-			return type;
-	return NULL;
+	DataType* type = NULL;
+	Scope const* current = &scope;
+	for (; current; current = current->getParent())
+	{
+		DataType* temp = current->getLocalDataType(name);
+		if(!type)
+		{
+			//Only continue if this var was found at the file scope or higher.
+			if(current->isFile() || current->isRoot())
+				type = temp;
+			else if(temp)
+				return temp;
+		}
+		else if(temp)
+		{
+			//Don't give a duplication warning on RootScope! -V
+			if(current->isRoot())
+				break;
+			if(&type != &temp)
+				errorHandler->handleError(CompileError::TooManyType(&host, name));
+		}
+	}
+	if(!useNamespace) return type; //End early
+	vector<NamespaceScope*> namespaces = lookupUsingNamespaces(scope);
+	for(vector<NamespaceScope*>::iterator it = namespaces.begin();
+		it != namespaces.end(); ++it)
+	{
+		NamespaceScope* nsscope = *it;
+		DataType* temp = nsscope->getLocalDataType(name);
+		if(!type)
+			type = temp;
+		else if(temp)
+		{
+			if(&type != &temp)
+				errorHandler->handleError(CompileError::TooManyType(&host, name));
+		}
+	}
+	return type;
+}
+
+DataType const* ZScript::lookupDataType(
+	Scope const& scope, ASTIdentifier& host, CompileErrorHandler* errorHandler)
+{
+	vector<string> names = host.components;
+	if (names.size() == 0)
+		return NULL;
+	else if (names.size() == 1)
+		return lookupDataType(scope, names[0], true); //This is a direct type name, i.e. `define`. Check UsingNamespaces for it, too! -V
+	vector<string> childNames(names.begin(), --names.end());
+	if (Scope* child = lookupScope(scope, childNames, host.delimiters, host, errorHandler))
+		return lookupDataType(*child, names.back()); //lookupScope() handles UsingNamespaces; don't handle it here! -V
 }
 
 ScriptType ZScript::lookupScriptType(Scope const& scope, string const& name)
