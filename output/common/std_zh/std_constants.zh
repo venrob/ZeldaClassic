@@ -2407,7 +2407,8 @@ const int RTC_MINUTE	= 5;
 const int RTC_SECOND	= 6;
 const int RTC_DAYOFYEAR	= 7;
 const int RTC_DAYLIGHTTIME	= 8;
-const int RTC_LAST		= 9;
+const int RTC_EPOCHTIME = 9;
+const int RTC_LAST		= 10;
 
 //Warp types. Use with Screen->SetSideWarp
 //and Link->WarpEx()

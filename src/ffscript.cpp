@@ -21605,6 +21605,11 @@ int FFScript::getTime(int type)
 			//View the time.h docs for the actual values of this struct element.
 			rval = tm_struct->tm_isdst;; break;
 		}
+		case curEpochMS:
+		{
+			//The milliseconds in UNIX Epoch time
+			rval = sysRTC;
+		}
 		default: 
 		{
 			al_trace("Invalid category passed to GetSystemTime(%d)\n",type);

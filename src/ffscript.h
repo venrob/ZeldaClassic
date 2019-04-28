@@ -61,7 +61,7 @@ enum {
 
 //SYstem Date and Time Categories for GetSystemTime()
 enum { curyear, curmonth, curday_month, curday_week, curhour, 
-	curminute, cursecond, curdayyear, curDST, curTimeLAST };
+	curminute, cursecond, curdayyear, curDST, curEpochMS, curTimeLAST };
 
 //Script drawing: (t/b/a)
 //Allow or forbid drawing during specific game events. 
