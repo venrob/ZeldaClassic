@@ -21608,7 +21608,7 @@ int FFScript::getTime(int type)
 		case curEpochMS:
 		{
 			//The milliseconds in UNIX Epoch time
-			rval = sysRTC;
+			rval = sysRTC; break;
 		}
 		default: 
 		{
