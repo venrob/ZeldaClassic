@@ -1092,13 +1092,14 @@ optional<long> ASTExprCast::getCompileTimeValue(
 		const
 {
 	if (!operand) return nullopt;
-	return operand->getCompileTimeValue(errorHandler, scope);
+	optional<long> result = operand->getCompileTimeValue(errorHandler, scope);
+	if (!result) return nullopt;
+	return DataType::castToReg(*result, DataType::getRegSize(*(*type).type), scope);
 }
 
 DataType const* ASTExprCast::getReadType(Scope* scope, CompileErrorHandler* errorHandler)
 {
-	DataType const* result = &(*type).resolve(*scope, errorHandler);
-	return result;
+	return &(*type).resolve(*scope, errorHandler);
 }
 
 // ASTBinaryExpr

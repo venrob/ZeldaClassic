@@ -1249,6 +1249,9 @@ enum __Error
         return _NoError;
     }
     
+	void do_cast_bool(const bool v);
+	void do_cast_char();
+	
     private:
     long sid;
     
@@ -1324,7 +1327,6 @@ void do_getscreenItem();
 void do_getscreendoor();
 long get_screennpc(mapscr *m, int index);
 void do_getscreennpc();
-
 
     
 
@@ -2095,7 +2097,10 @@ enum ASM_DEFINE
 	BMPDRAWSCREENCOMBOTR,
 	BMPDRAWSCREENSOLID2R,
 	GRAPHICSGETPIXEL,
-	NUMCOMMANDS           //0x013F
+	CASTBOOLD,
+	CASTBOOLI,
+	CASTCHAR,
+	NUMCOMMANDS           //0x016F
 };
 
 

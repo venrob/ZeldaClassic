@@ -11,6 +11,7 @@
 #include <math.h>
 #include <cstdio>
 
+#include "parser/parserDefs.h"
 #include "ffasm.h"
 #include "zc_sys.h"
 extern byte use_dwm_flush;
@@ -18345,6 +18346,18 @@ int run_script(const byte type, const word script, const long i)
 		    FFCore.do_set_oggex_speed(false);
 		    break;
 		
+		case CASTBOOLD:
+			FFCore.do_cast_bool(false);
+			break;
+		
+		case CASTBOOLI:
+			FFCore.do_cast_bool(true);
+			break;
+		
+		case CASTCHAR:
+			FFCore.do_cast_char();
+			break;
+		
 		default:
 		{
 		    Z_scripterrlog("Invalid ZASM command %ld reached\n", scommand);
@@ -22421,6 +22434,17 @@ int CScriptDrawingCommands::GetCount()
 	al_trace("current number of draws is: %d\n", count);
 	return count;
 }
+
+void FFScript::do_cast_bool(const bool v)
+{
+	set_register(sarg1, get_register(sarg1) == 0 ? 0 : (v ? 10000 : 1));
+}
+
+void FFScript::do_cast_char()
+{
+	set_register(sarg1, wrap_unsigned(get_register(sarg1) / 10000L, 8)*10000L);
+}
+
 //Advances the game frame without checking 'Quit' variable status.
 //Used for making scripts such as Link's onWin and onDeath scripts
 //run for multiple frames.

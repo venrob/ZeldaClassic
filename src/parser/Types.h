@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "parserDefs.h"
 #include "CompilerUtils.h"
 
 namespace ZScript
@@ -157,6 +158,9 @@ namespace ZScript
 		static DataType const* get(DataTypeId id);
 		static DataTypeClass const* getClass(int classId);
 		static DataTypeCustom const* getCustom(int customId) {return find<DataTypeCustom*>(customTypes, customId).value_or(NULL);};
+		static regSize getRegSize(DataType const& type);
+		static regSize getRegSize(DataType const& type1, DataType const& type2);
+		static long castToReg(long regVal, regSize size, Scope* scope);
 		static void addCustom(DataTypeCustom* custom);
 		static int getUniqueCustomId() {return nextCustomId_++;}
 		

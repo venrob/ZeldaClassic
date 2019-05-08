@@ -425,6 +425,21 @@ void SemanticAnalyzer::caseDataDecl(ASTDataDecl& host, void*)
 		return;
 	}
 
+	// Check the initializer.
+	if (host.getInitializer())
+	{
+		// Make sure we can cast the initializer to the type.
+		DataType const& initType = *host.getInitializer()->getReadType(scope, this);
+		//If this is in an `enum`, then the write type is `CFLOAT`.
+		ASTDataType* temp = new ASTDataType(DataType::CFLOAT, host.location);
+		DataType const& enumType = temp->resolve(*scope, this);
+
+		checkCast(initType, (host.list && host.list->isEnum()) ? enumType : type, &host);
+		if (breakRecursion(host)) return;
+
+		// TODO check for array casting here.
+	}	
+	
 	// Is it a constant?
 	bool isConstant = false;
 	if (type.isConstant())
@@ -468,21 +483,6 @@ void SemanticAnalyzer::caseDataDecl(ASTDataDecl& host, void*)
 
 		Variable::create(*scope, host, type, this);
 	}
-
-	// Check the initializer.
-	if (host.getInitializer())
-	{
-		// Make sure we can cast the initializer to the type.
-		DataType const& initType = *host.getInitializer()->getReadType(scope, this);
-		//If this is in an `enum`, then the write type is `CFLOAT`.
-		ASTDataType* temp = new ASTDataType(DataType::CFLOAT, host.location);
-		DataType const& enumType = temp->resolve(*scope, this);
-
-		checkCast(initType, (host.list && host.list->isEnum()) ? enumType : type, &host);
-		if (breakRecursion(host)) return;
-
-		// TODO check for array casting here.
-	}	
 }
 
 void SemanticAnalyzer::caseDataDeclExtraArray(

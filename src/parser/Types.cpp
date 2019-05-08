@@ -295,6 +295,48 @@ DataTypeClass const* DataType::getClass(int classId)
 	}
 }
 
+regSize DataType::getRegSize(DataType const& type)
+{
+	if(DataTypeSimple const* t = dynamic_cast<DataTypeSimple const*>(&type))
+	{
+		switch(t->getId())
+		{
+			case ZVARTYPEID_BOOL:
+				return REGSIZE_BOOL;
+				
+			case ZVARTYPEID_CHAR:
+				return REGSIZE_CHAR;
+				
+			case ZVARTYPEID_FLOAT:
+			default:
+				return REGSIZE_INT;
+		}
+	}
+}
+
+regSize DataType::getRegSize(DataType const& type1, DataType const& type2)
+{
+	return min(getRegSize(type1), getRegSize(type2));
+}
+
+long DataType::castToReg(long regVal, regSize size, Scope* scope)
+{
+	switch(size)
+	{
+		case REGSIZE_BOOL:
+			return regVal ? (*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) ? 1 : 10000) : 0;
+			
+		case REGSIZE_CHAR:
+			return wrap_unsigned(regVal / 10000L, 8) * 10000L;
+			
+		case REGSIZE_INT:
+		default:
+			//Do nothing. This is the normal register size.
+			break;
+	}
+	return regVal;
+}
+
 void DataType::addCustom(DataTypeCustom* custom)
 {
 	customTypes[custom->getCustomId()] = custom;

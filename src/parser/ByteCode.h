@@ -1489,7 +1489,7 @@ namespace ZScript
 			return new OWaitdraw();
 		}
 	};
-
+	
 	class OGotoImmediate : public UnaryOpcode
 	{
 	public:
@@ -7455,6 +7455,39 @@ namespace ZScript
 		Opcode *clone()
 		{
 			return new OGraphicsGetpixel(a->clone());
+		}
+	};
+
+	class OCastBoolDec : public UnaryOpcode
+	{
+	public:
+		OCastBoolDec(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OCastBoolDec(a->clone());
+		}
+	};
+	
+	class OCastBoolInt : public UnaryOpcode
+	{
+	public:
+		OCastBoolInt(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OCastBoolInt(a->clone());
+		}
+	};
+
+	class OCastChar : public UnaryOpcode
+	{
+	public:
+		OCastChar(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OCastChar(a->clone());
 		}
 	};
 }

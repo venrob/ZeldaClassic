@@ -53,6 +53,7 @@ namespace ZScript
 		virtual void caseExprPreIncrement(ASTExprPreIncrement &host, void *param);
 		virtual void caseExprDecrement(ASTExprDecrement &host, void *param);
 		virtual void caseExprPreDecrement(ASTExprPreDecrement &host, void *param);
+		virtual void caseExprCast(ASTExprCast &host, void *param);
 		virtual void caseExprAnd(ASTExprAnd &host, void *param);
 		virtual void caseExprOr(ASTExprOr &host, void *param);
 		virtual void caseExprGT(ASTExprGT &host, void *param);
@@ -87,6 +88,7 @@ namespace ZScript
 		list<long> *getArrayRefs() {return &arrayRefs;}
 		list<long> const *getArrayRefs() const {return &arrayRefs;}
 		void castFromBool(vector<Opcode *> &result, int reg);
+		optional<Opcode*> regLimit(regSize size, int reg, Scope* scope);
 
 	private:
 		void addOpcode(Opcode* code);

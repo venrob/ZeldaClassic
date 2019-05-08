@@ -430,6 +430,11 @@ void BuildOpcodes::buildVariable(ASTDataDecl& host, OpcodeContext& context)
 
 	// Load initializer into EXP1, if present.
 	visit(host.getInitializer(), &context);
+	
+    // Cast EXP1
+    optional<Opcode*> castOp = regLimit(DataType::getRegSize(*host.resolveType(scope, this)), EXP1, scope); //This should forcibly limit the number to the register size of the type. -V
+	if(castOp) {addOpcode(*castOp);
+	handleError(CompileError::ConstTrunc(&host, (*castOp)->toString()));}
 
 	// Set variable to EXP1 or 0, depending on the initializer.
 	if (optional<int> globalId = manager.getGlobalId())
@@ -514,6 +519,12 @@ void BuildOpcodes::caseExprAssign(ASTExprAssign &host, void *param)
 {
     //load the rval into EXP1
 	visit(host.right.get(), param);
+	
+    // Cast EXP1
+    optional<Opcode*> castOp = regLimit(DataType::getRegSize(*(*host.left).getReadType(scope, this), *(*host.right).getReadType(scope, this)), EXP1, scope); //This should forcibly limit the number to the register size of the type. -V
+	if(castOp) {addOpcode(*castOp);
+	handleError(CompileError::ConstTrunc(&host, (*castOp)->toString()));}
+	
     //and store it
     LValBOHelper helper;
     host.left->execute(helper, param);
@@ -737,6 +748,23 @@ void BuildOpcodes::caseExprPreDecrement(ASTExprPreDecrement& host, void* param)
     addOpcode(new OSubImmediate(new VarArgument(EXP1),
 								new LiteralArgument(10000)));
 
+    // Store it.
+    LValBOHelper helper;
+    host.operand->execute(helper, param);
+	addOpcodes(helper.getResult());
+}
+
+void BuildOpcodes::caseExprCast(ASTExprCast& host, void* param)
+{
+    OpcodeContext* c = (OpcodeContext*)param;
+
+    // Load value of the variable into EXP1.
+	visit(host.operand.get(), param);
+
+    // Cast EXP1
+    optional<Opcode*> castOp = regLimit(DataType::getRegSize(*(*host.type).type), EXP1, scope); //This should forcibly limit the number to the register size of the type. -V
+	if(castOp) addOpcode(*castOp);
+	
     // Store it.
     LValBOHelper helper;
     host.operand->execute(helper, param);
@@ -1545,6 +1573,28 @@ void BuildOpcodes::castFromBool(vector<Opcode*>& res, int reg)
 {
     res.push_back(new OCompareImmediate(new VarArgument(reg), new LiteralArgument(0)));
     res.push_back(new OSetFalse(new VarArgument(reg)));
+}
+
+optional<Opcode*> BuildOpcodes::regLimit(regSize size, int reg, Scope* scope)
+{
+	switch(size)
+	{
+		case REGSIZE_BOOL:
+			if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+				return new OCastBoolDec(new VarArgument(reg)); //Cast to ZScript 0.0001
+			else
+				return new OCastBoolInt(new VarArgument(reg)); //Cast to ZScript 1.0000
+			break;
+		
+		case REGSIZE_CHAR:
+			return new OCastChar(new VarArgument(reg));
+			break;
+			
+		case REGSIZE_INT:
+		default:
+			return nullopt;
+			break;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////

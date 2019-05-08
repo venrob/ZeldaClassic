@@ -4417,6 +4417,21 @@ string OGraphicsGetpixel::toString()
     return "GRAPHICSGETPIXEL " + getArgument()->toString();
 }
 
+string OCastBoolDec::toString()
+{
+	return "CASTBOOLD " + getArgument()->toString();
+}
+
+string OCastBoolInt::toString()
+{
+	return "CASTBOOLI " + getArgument()->toString();
+}
+
+string OCastChar::toString()
+{
+	return "CASTCHAR " + getArgument()->toString();
+}
+
 string OReturn::toString()
 {
 	return "RETURN";
