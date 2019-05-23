@@ -359,14 +359,14 @@ void BuildOpcodes::caseStmtDo(ASTStmtDo &host, void *param)
 void BuildOpcodes::caseStmtReturn(ASTStmtReturn&, void*)
 {
 	deallocateRefsUntilCount(0);
-    addOpcode(new OGotoImmediate(new LabelArgument(returnlabelid)));
+	addOpcode(new OGotoImmediate(new LabelArgument(returnlabelid)));
 }
 
 void BuildOpcodes::caseStmtReturnVal(ASTStmtReturnVal &host, void *param)
 {
 	visit(host.value.get(), param);
 	deallocateRefsUntilCount(0);
-    addOpcode(new OGotoImmediate(new LabelArgument(returnlabelid)));
+	addOpcode(new OGotoImmediate(new LabelArgument(returnlabelid)));
 }
 
 void BuildOpcodes::caseStmtBreak(ASTStmtBreak &host, void *)
@@ -402,6 +402,7 @@ void BuildOpcodes::caseStmtEmpty(ASTStmtEmpty &, void *)
 
 void BuildOpcodes::caseFuncDecl(ASTFuncDecl &host, void *param)
 {
+	if(host.getFlag(FUNCFLAG_INLINE)) return; //Skip inline func decls, they are handled at call location -V
 	int oldreturnlabelid = returnlabelid;
 	int oldReturnRefCount = returnRefCount;
     returnlabelid = ScriptParser::getUniqueLabelID();
@@ -618,41 +619,103 @@ void BuildOpcodes::caseExprIndex(ASTExprIndex& host, void* param)
 void BuildOpcodes::caseExprCall(ASTExprCall& host, void* param)
 {
 	if (host.isDisabled()) return;
-	
     OpcodeContext* c = (OpcodeContext*)param;
-    int funclabel = host.binding->getLabel();
-    //push the stack frame pointer
-    addOpcode(new OPushRegister(new VarArgument(SFRAME)));
-    //push the return address
-    int returnaddr = ScriptParser::getUniqueLabelID();
-    addOpcode(new OSetImmediate(new VarArgument(EXP1), new LabelArgument(returnaddr)));
-    addOpcode(new OPushRegister(new VarArgument(EXP1)));
+	if(host.binding->getFlag(FUNCFLAG_INLINE)) //Inline function
+	{
+		if(host.binding->isInternal())
+		{
+			//push the parameters, in forward order
+			for (vector<ASTExpr*>::iterator it = host.parameters.begin();
+				it != host.parameters.end(); ++it)
+			{
+				visit(*it, param);
+				addOpcode(new OPushRegister(new VarArgument(EXP1)));
+			}
+			
+			vector<Opcode*> const& funcCode = host.binding->getCode();
+			for(vector<Opcode*>::const_iterator it = funcCode.begin();
+				it != funcCode.end(); ++it)
+			{
+				addOpcode((*it)->makeClone());
+			}
+		}
+		else
+		{
+			/* This section has issues, and a totally new system for parameters must be devised. For now, just disabling inlining of user functions altogether. -V
+												
+			// If the function is a pointer function (->func()) we need to push the
+			// left-hand-side.
+			if (host.left->isTypeArrow())
+			{
+				//load the value of the left-hand of the arrow into EXP1
+				visit(static_cast<ASTExprArrow&>(*host.left).left.get(), param);
+				//visit(host.getLeft(), param);
+				//push it onto the stack
+				addOpcode(new OPushRegister(new VarArgument(EXP1)));
+			}
 
-    // If the function is a pointer function (->func()) we need to push the
-    // left-hand-side.
-    if (host.left->isTypeArrow())
-    {
-        //load the value of the left-hand of the arrow into EXP1
-	    visit(static_cast<ASTExprArrow&>(*host.left).left.get(), param);
-        //visit(host.getLeft(), param);
-        //push it onto the stack
-        addOpcode(new OPushRegister(new VarArgument(EXP1)));
-    }
+			//push the data decls, in forward order
+			for (vector<ASTDataDecl*>::iterator it = host.inlineParams.begin();
+				it != host.inlineParams.end(); ++it)
+			{
+				visit(*it, param);
+			}
+			
+			//Inline-specific:
+			ASTFuncDecl& decl = *(host.binding->node);
+			//Set the inline flag, process the function block, then reset flags to prior state.
+			int oldreturnlabelid = returnlabelid;
+			int oldReturnRefCount = returnRefCount;
+			returnlabelid = ScriptParser::getUniqueLabelID();
+			returnRefCount = arrayRefs.size();
+			
+			visit(*host.inlineBlock, param);
+			
+			Opcode *next = new ONoOp(); //Just here so the label can be placed.
+			next->setLabel(returnlabelid);
+			addOpcode(next);
+			
+			returnlabelid = oldreturnlabelid;
+			returnRefCount = oldReturnRefCount;*/
+		}
+	}
+	else //Non-inline function
+	{
+		int funclabel = host.binding->getLabel();
+		//push the stack frame pointer
+		addOpcode(new OPushRegister(new VarArgument(SFRAME)));
+		//push the return address
+		int returnaddr = ScriptParser::getUniqueLabelID();
+		//addOpcode(new OSetImmediate(new VarArgument(EXP1), new LabelArgument(returnaddr)));
+		//addOpcode(new OPushRegister(new VarArgument(EXP1)));
+		addOpcode(new OPushImmediate(new LabelArgument(returnaddr)));
+		
+		
+		// If the function is a pointer function (->func()) we need to push the
+		// left-hand-side.
+		if (host.left->isTypeArrow())
+		{
+			//load the value of the left-hand of the arrow into EXP1
+			visit(static_cast<ASTExprArrow&>(*host.left).left.get(), param);
+			//visit(host.getLeft(), param);
+			//push it onto the stack
+			addOpcode(new OPushRegister(new VarArgument(EXP1)));
+		}
 
-    //push the parameters, in forward order
-    for (vector<ASTExpr*>::iterator it = host.parameters.begin();
-		it != host.parameters.end(); ++it)
-    {
-        visit(*it, param);
-        addOpcode(new OPushRegister(new VarArgument(EXP1)));
-    }
-
-    //goto
-    addOpcode(new OGotoImmediate(new LabelArgument(funclabel)));
-    //pop the stack frame pointer
-    Opcode *next = new OPopRegister(new VarArgument(SFRAME));
-    next->setLabel(returnaddr);
-    addOpcode(next);
+		//push the parameters, in forward order
+		for (vector<ASTExpr*>::iterator it = host.parameters.begin();
+			it != host.parameters.end(); ++it)
+		{
+			visit(*it, param);
+			addOpcode(new OPushRegister(new VarArgument(EXP1)));
+		}
+		//goto
+		addOpcode(new OGotoImmediate(new LabelArgument(funclabel)));
+		//pop the stack frame pointer
+		Opcode *next = new OPopRegister(new VarArgument(SFRAME));
+		next->setLabel(returnaddr);
+		addOpcode(next);
+	}
 }
 
 void BuildOpcodes::caseExprNegate(ASTExprNegate& host, void* param)
@@ -679,8 +742,10 @@ void BuildOpcodes::caseExprNot(ASTExprNot& host, void* param)
 
     visit(host.operand.get(), param);
     addOpcode(new OCompareImmediate(new VarArgument(EXP1), new LiteralArgument(0)));
-    addOpcode(new OSetTrue(new VarArgument(EXP1)));
-	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetTrue(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetTrueI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprBitNot(ASTExprBitNot& host, void* param)
@@ -790,8 +855,6 @@ void BuildOpcodes::caseExprAnd(ASTExprAnd& host, void* param)
 		Opcode* ocode =  new OCompareImmediate(new VarArgument(EXP1), new LiteralArgument(1));
 		ocode->setLabel(skip);
 		addOpcode(ocode);
-		addOpcode(new OSetMore(new VarArgument(EXP1)));
-		if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
 	}
 	else
 	{
@@ -803,13 +866,15 @@ void BuildOpcodes::caseExprAnd(ASTExprAnd& host, void* param)
 		visit(host.right.get(), param);
 		//Retrieve left
 		addOpcode(new OPopRegister(new VarArgument(EXP2)));
-		castFromBool(result, EXP1);
-		castFromBool(result, EXP2);
+		addOpcode(new OCastBoolF(new VarArgument(EXP1)));
+		addOpcode(new OCastBoolF(new VarArgument(EXP2)));
 		addOpcode(new OAddRegister(new VarArgument(EXP1), new VarArgument(EXP2)));
 		addOpcode(new OCompareImmediate(new VarArgument(EXP1), new LiteralArgument(2)));
-		addOpcode(new OSetMore(new VarArgument(EXP1)));
-		if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
 	}
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetMore(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetMoreI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprOr(ASTExprOr& host, void* param)
@@ -832,10 +897,9 @@ void BuildOpcodes::caseExprOr(ASTExprOr& host, void* param)
 		visit(host.right.get(), param);
 		addOpcode(new OCompareImmediate(new VarArgument(EXP1), new LiteralArgument(1)));
 		//Set output
-		Opcode* ocode = new OSetMore(new VarArgument(EXP1));
+		Opcode* ocode = (*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL)) ? (Opcode*)(new OSetMore(new VarArgument(EXP1))) : (Opcode*)(new OSetMoreI(new VarArgument(EXP1)));
 		if(short_circuit) ocode->setLabel(skip);
 		addOpcode(ocode);
-		if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
 	}
 	else
 	{
@@ -849,8 +913,10 @@ void BuildOpcodes::caseExprOr(ASTExprOr& host, void* param)
 		addOpcode(new OPopRegister(new VarArgument(EXP2)));
 		addOpcode(new OAddRegister(new VarArgument(EXP1), new VarArgument(EXP2)));
 		addOpcode(new OCompareImmediate(new VarArgument(EXP1), new LiteralArgument(1)));
-		addOpcode(new OSetMore(new VarArgument(EXP1)));		
-		if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+		if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+			addOpcode(new OSetMore(new VarArgument(EXP1)));
+		else
+			addOpcode(new OSetMoreI(new VarArgument(EXP1)));
 	}
 }
 
@@ -870,8 +936,10 @@ void BuildOpcodes::caseExprGT(ASTExprGT& host, void* param)
     addOpcode(new OCompareRegister(new VarArgument(EXP2), new VarArgument(EXP1)));
     addOpcode(new OSetLess(new VarArgument(EXP1)));
     addOpcode(new OCompareImmediate(new VarArgument(EXP1), new LiteralArgument(0)));
-    addOpcode(new OSetTrue(new VarArgument(EXP1)));
-	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetTrue(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetTrueI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprGE(ASTExprGE& host, void* param)
@@ -888,8 +956,10 @@ void BuildOpcodes::caseExprGE(ASTExprGE& host, void* param)
     visit(host.right.get(), param);
     addOpcode(new OPopRegister(new VarArgument(EXP2)));
     addOpcode(new OCompareRegister(new VarArgument(EXP2), new VarArgument(EXP1)));
-    addOpcode(new OSetMore(new VarArgument(EXP1)));
-	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetMore(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetMoreI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprLT(ASTExprLT& host, void* param)
@@ -908,8 +978,10 @@ void BuildOpcodes::caseExprLT(ASTExprLT& host, void* param)
     addOpcode(new OCompareRegister(new VarArgument(EXP2), new VarArgument(EXP1)));
     addOpcode(new OSetMore(new VarArgument(EXP1)));
     addOpcode(new OCompareImmediate(new VarArgument(EXP1), new LiteralArgument(0)));
-    addOpcode(new OSetTrue(new VarArgument(EXP1)));
-	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetTrue(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetTrueI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprLE(ASTExprLE& host, void* param)
@@ -926,14 +998,18 @@ void BuildOpcodes::caseExprLE(ASTExprLE& host, void* param)
     visit(host.right.get(), param);
     addOpcode(new OPopRegister(new VarArgument(EXP2)));
     addOpcode(new OCompareRegister(new VarArgument(EXP2), new VarArgument(EXP1)));
-    addOpcode(new OSetLess(new VarArgument(EXP1)));
-	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetLess(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetLessI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprEQ(ASTExprEQ& host, void* param)
 {
     // Special case for booleans.
-    bool isBoolean = (*host.left->getReadType(scope, this) == DataType::BOOL);
+	DataType const* ltype = host.left->getReadType(scope, this);
+	DataType const* rtype = host.right->getReadType(scope, this);
+    bool isBoolean = (*ltype == DataType::BOOL || *rtype == DataType::BOOL || *ltype == DataType::CBOOL || *rtype == DataType::CBOOL);
 
     if (host.getCompileTimeValue(NULL, scope))
     {
@@ -949,19 +1025,23 @@ void BuildOpcodes::caseExprEQ(ASTExprEQ& host, void* param)
 
     if (isBoolean)
     {
-        castFromBool(result, EXP1);
-        castFromBool(result, EXP2);
+        addOpcode(new OCastBoolF(new VarArgument(EXP1)));
+        addOpcode(new OCastBoolF(new VarArgument(EXP2)));
     }
 
     addOpcode(new OCompareRegister(new VarArgument(EXP1), new VarArgument(EXP2)));
-    addOpcode(new OSetTrue(new VarArgument(EXP1)));
-	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetTrue(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetTrueI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprNE(ASTExprNE& host, void* param)
 {
     // Special case for booleans.
-    bool isBoolean = (*host.left->getReadType(scope, this) == DataType::BOOL);
+	DataType const* ltype = host.left->getReadType(scope, this);
+	DataType const* rtype = host.right->getReadType(scope, this);
+    bool isBoolean = (*ltype == DataType::BOOL || *rtype == DataType::BOOL || *ltype == DataType::CBOOL || *rtype == DataType::CBOOL);
 
     if (host.getCompileTimeValue(NULL, scope))
     {
@@ -977,13 +1057,15 @@ void BuildOpcodes::caseExprNE(ASTExprNE& host, void* param)
 
     if (isBoolean)
     {
-        castFromBool(result, EXP1);
-        castFromBool(result, EXP2);
+        addOpcode(new OCastBoolF(new VarArgument(EXP1)));
+        addOpcode(new OCastBoolF(new VarArgument(EXP2)));
     }
 
     addOpcode(new OCompareRegister(new VarArgument(EXP1), new VarArgument(EXP2)));
-    addOpcode(new OSetFalse(new VarArgument(EXP1)));
-	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL) == 0) addOpcode(new OMultImmediate(new VarArgument(EXP1), new LiteralArgument(100000000)));
+	if(*lookupOption(*scope, CompileOption::OPT_BOOL_TRUE_RETURN_DECIMAL))
+		addOpcode(new OSetFalse(new VarArgument(EXP1)));
+	else
+		addOpcode(new OSetFalseI(new VarArgument(EXP1)));
 }
 
 void BuildOpcodes::caseExprPlus(ASTExprPlus& host, void* param)
@@ -1526,15 +1608,7 @@ void BuildOpcodes::arrayLiteralFree(
 void BuildOpcodes::caseOptionValue(ASTOptionValue& host, void*)
 {
 	addOpcode(new OSetImmediate(new VarArgument(EXP1),
-	                            new LiteralArgument(*host.value)));
-}
-
-// Other
-
-void BuildOpcodes::castFromBool(vector<Opcode*>& res, int reg)
-{
-    res.push_back(new OCompareImmediate(new VarArgument(reg), new LiteralArgument(0)));
-    res.push_back(new OSetFalse(new VarArgument(reg)));
+	                            new LiteralArgument(*host.getCompileTimeValue(this, scope))));
 }
 
 /////////////////////////////////////////////////////////////////////////////////

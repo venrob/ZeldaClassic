@@ -664,11 +664,21 @@ namespace ZScript
 		void execute(ASTVisitor& visitor, void* param = NULL) /*override*/;
 
 		Type getDeclarationType() const /*override*/ {return TYPE_FUNCTION;}
+		
+		bool getFlag(int flag) const {return flags & flag;}
+		void setFlag(int flag, bool state = true);
+		int getFlags() const {return flags;}
+		bool isRun() const;
 
 		owning_ptr<ASTDataType> returnType;
 		owning_vector<ASTDataDecl> parameters;
 		std::string name;
 		owning_ptr<ASTBlock> block;
+		std::string invalidMsg;
+		Function* func;
+	private:
+		int flags;
+		friend class Function;
 	};
 
 	// A line of variable/constant declarations:
@@ -702,6 +712,8 @@ namespace ZScript
 	{
 	public:
 		ASTDataEnum(LocationData const& location = LocationData::NONE);
+		ASTDataEnum(ASTDataEnum const&);
+		ASTDataEnum& operator=(ASTDataEnum const& rhs);
 		ASTDataEnum* clone() const {return new ASTDataEnum(*this);}
 
 		void execute(ASTVisitor& visitor, void* param = NULL);
@@ -1024,6 +1036,8 @@ namespace ZScript
 	
 		owning_ptr<ASTExpr> left;
 		owning_vector<ASTExpr> parameters;
+		owning_ptr<ASTBlock> inlineBlock;
+		owning_vector<ASTDataDecl> inlineParams;
 
 		Function* binding;
 	};
@@ -1693,6 +1707,10 @@ namespace ZScript
 		virtual bool isConstant() const {return true;}
 		bool isLiteral() const {return false;} //Despite being an `ASTLiteral`, this is NOT a literal. Why is this under ASTLiteral? -V
 
+		
+		optional<long> getCompileTimeValue(
+				CompileErrorHandler* errorHandler = NULL, Scope* scope = NULL)
+				const;
 		virtual DataType const* getReadType(Scope* scope, CompileErrorHandler* errorHandler) {
 			return &DataType::FLOAT;}
 

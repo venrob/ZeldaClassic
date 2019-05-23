@@ -796,7 +796,82 @@ script_command command_list[NUMCOMMANDS+1]=
       { "BMPDRAWLAYERSOLIDITYR",     0,   0,   0,   0},
       { "BMPMODE7",     0,   0,   0,   0},
       { "BITMAPGETPIXEL",     0,   0,   0,   0},
-      { "",                    0,   0,   0,   0}
+      { "NOP",                 0,   0,   0,   0},
+      { "STRINGCOMPARE",		       1,   0,   0,   0},
+      { "STRINGNCOMPARE",		       1,   0,   0,   0},
+      { "STRINGLENGTH",                2,   0,   0,   0},
+      { "STRINGCOPY",          2,   0,   0,   0},
+      { "CASTBOOLI",          1,   0,   0,   0},
+      { "CASTBOOLF",          1,   0,   0,   0},
+    { "SETTRUEI",             1,   0,   0,   0},
+    { "SETFALSEI",            1,   0,   0,   0},
+    { "SETMOREI",             1,   0,   0,   0},
+    { "SETLESSI",             1,   0,   0,   0},
+    
+    { "ARRAYCOPY",          2,   0,   0,   0},
+    { "ARRAYNCOPY",		       1,   0,   0,   0},
+    
+    //1 INPUT, NO RETURN 
+     { "REMCHR",                2,   0,   0,   0},
+     { "STRINGUPPERLOWER",                2,   0,   0,   0},
+     { "STRINGLOWERUPPER",                2,   0,   0,   0},
+     { "STRINGCONVERTCASE",                2,   0,   0,   0},
+     
+    //1 input, 1 ret
+    { "XLEN",                2,   0,   0,   0},
+    { "XTOI",                2,   0,   0,   0},
+    { "ILEN",                2,   0,   0,   0},
+    { "ATOI",                2,   0,   0,   0},
+   
+    //2 INPUT, 1 RET, based on strcmp
+    { "STRCSPN",                1,   0,   0,   0},
+    { "STRSTR",                1,   0,   0,   0},
+    { "XTOA",                1,   0,   0,   0},
+    { "ITOA",                1,   0,   0,   0},
+    { "STRCAT",                1,   0,   0,   0},
+    { "STRSPN",                1,   0,   0,   0},
+    { "STRCHR",                1,   0,   0,   0},
+    { "STRRCHR",                1,   0,   0,   0},
+    //2 INP, 1 RET OVERLOADS
+    { "XLEN2",                1,   0,   0,   0},
+    { "XTOI2",                1,   0,   0,   0},
+    { "ILEN2",                1,   0,   0,   0},
+    { "ATOI2",                1,   0,   0,   0},
+    { "REMCHR2",                1,   0,   0,   0},
+    
+    //3 INPUT 1 RET 
+    { "XTOA3",		       1,   0,   0,   0},
+    { "STRCATF",		       1,   0,   0,   0},
+    { "ITOA3",		       1,   0,   0,   0},
+    { "STRSTR3",		       1,   0,   0,   0},
+    { "REMNCHR3",		       1,   0,   0,   0},
+    { "STRCAT3",		       1,   0,   0,   0},
+    { "STRNCAT3",		       1,   0,   0,   0},
+    { "STRCHR3",		       1,   0,   0,   0},
+    { "STRRCHR3",		       1,   0,   0,   0},
+    { "STRSPN3",		       1,   0,   0,   0},
+    { "STRCSPN3",		       1,   0,   0,   0},
+    
+    
+    { "UPPERTOLOWER",                2,   0,   0,   0},
+    { "LOWERTOUPPER",                2,   0,   0,   0},
+    { "CONVERTCASE",                2,   0,   0,   0},
+    //Game->Get
+    { "GETNPCSCRIPT",                2,   0,   0,   0},
+    { "GETLWEAPONSCRIPT",                2,   0,   0,   0},
+    { "GETEWEAPONSCRIPT",                2,   0,   0,   0},
+    { "GETHEROSCRIPT",                2,   0,   0,   0},
+    { "GETGLOBALSCRIPT",                2,   0,   0,   0},
+    { "GETDMAPSCRIPT",                2,   0,   0,   0},
+    { "GETSCREENSCRIPT",                2,   0,   0,   0},
+    { "GETSPRITESCRIPT",                2,   0,   0,   0},
+    { "GETUNTYPEDSCRIPT",                2,   0,   0,   0},
+    { "GETSUBSCREENSCRIPT",                2,   0,   0,   0},
+    { "GETNPCBYNAME",                2,   0,   0,   0},
+    { "GETITEMBYNAME",                2,   0,   0,   0},
+    { "GETCOMBOBYNAME",                2,   0,   0,   0},
+    { "GETDMAPBYNAME",                2,   0,   0,   0},
+    { "",                    0,   0,   0,   0}
 };
 
 
@@ -1846,6 +1921,11 @@ script_variable variable_list[]=
 	{"KEYMODIFIERS", KEYMODIFIERS, 0, 0 },
 	{"SIMULATEKEYPRESS", SIMULATEKEYPRESS, 0, 0 },
 	{"KEYBINDINGS", KEYBINDINGS, 0, 0 },
+	
+	{"SCREENSCRIPT", SCREENSCRIPT, 0, 0 },
+	{"SCREENINITD", SCREENINITD, 0, 0 },
+	{"MAPDATASCRIPT", MAPDATASCRIPT, 0, 0 },
+	{"MAPDATAINITDARRAY", MAPDATAINITDARRAY, 0, 0 },
 	
 	
 	{ " ",                       -1,             0,             0 }

@@ -99,13 +99,13 @@
 
 #define ZELDA_VERSION       0x0255                         //version of the program
 #define ZC_VERSION 25500 //Version ID for ZScript Game->Version
-#define VERSION_BUILD       44                              //build number of this version
+#define VERSION_BUILD       46                              //build number of this version
 //31 == 2.53.0 , leaving 32-39 for bugfixes, and jumping to 40. 
-#define ZELDA_VERSION_STR   "AEternal (v2.55) Alpha 22"                    //version of the program as presented in text
-#define IS_BETA             -22                         //is this a beta? (1: beta, -1: alpha)
-#define VERSION_BETA        22
-#define DATE_STR            "6th May, 2019"
-#define ZELDA_ABOUT_STR 	    "ZC Player 'AEternal', Alpha 22"
+#define ZELDA_VERSION_STR   "AEternal (v2.55) Alpha 23"                    //version of the program as presented in text
+#define IS_BETA             -23                         //is this a beta? (1: beta, -1: alpha)
+#define VERSION_BETA        23
+#define DATE_STR            "20th May, 2019"
+#define ZELDA_ABOUT_STR 	    "ZC Player 'AEternal', Alpha 23"
 #define COPYRIGHT_YEAR      "2019"                          //shown on title screen and in ending
 
 #define MIN_VERSION         0x0184
@@ -184,8 +184,8 @@ enum {ENC_METHOD_192B104=0, ENC_METHOD_192B105, ENC_METHOD_192B185, ENC_METHOD_2
 #define V_TILES            2 //2 is a long, max 214500 tiles (ZScript upper limit)
 #define V_COMBOS           11
 #define V_CSETS            4
-#define V_MAPS            19
-#define V_DMAPS            12
+#define V_MAPS            20
+#define V_DMAPS            13
 #define V_DOORS            1
 #define V_ITEMS           44
 #define V_WEAPONS          7
@@ -841,7 +841,7 @@ enum
 	qr_NEVERDISABLEAMMOONSUBSCREEN, qr_ITEMSCRIPTSKEEPRUNNING,
 	qr_SCRIPTSRUNINLINKSTEPFORWARD, /*qr_SCRIPTDRAWSINCANCELWARP,*/ qr_SCRIPTDRAWSWHENSCROLLING, qr_SCRIPTDRAWSINWARPS,
 	qr_DYINGENEMYESDONTHURTLINK, //t.b.a
-	qr_SIDEVIEWTRIFORCECELLAR,
+	qr_SIDEVIEWTRIFORCECELLAR, qr_OUTOFBOUNDSENEMIES,
 	
 	//ZScript Parser //room for 20 of these
 	qr_PARSER_250DIVISION = 80*8, //2.50 integer division bug emulation
@@ -854,6 +854,9 @@ enum
 	qr_NOSCRIPTSDURINGSCROLL, /* Not Implemented : This was in 2.50.2, but never used. */
 	qr_OLDSPRITEDRAWS,
 	qr_WEAPONSHADOWS, qr_ITEMSHADOWS, qr_OLDEWPNPARENT, qr_OLDCREATEBITMAP_ARGS,
+	qr_OLDQUESTMISC, 
+	qr_PARSER_FORCE_INLINE,
+	qr_CLEARINITDONSCRIPTCHANGE,
     qr_MAX
 };
 
@@ -1966,6 +1969,10 @@ struct mapscr
     signed short new_item_x[10];
     signed short new_item_y[10];
     
+    
+    word script;
+    long screeninitd[8];
+    
     void zero_memory()
     {
         //oh joy, this will be fun...
@@ -2120,6 +2127,9 @@ struct mapscr
         for ( int q = 0; q < 10; q++ ) new_items[q] = 0;
         for ( int q = 0; q < 10; q++ ) new_item_x[q] = 0;
         for ( int q = 0; q < 10; q++ ) new_item_y[q] = 0;
+	
+	script = 0;
+	for ( int q = 0; q < 8; q++) screeninitd[q] = 0;
         
         data.assign(176,0);
         sflag.assign(176,0);
@@ -2439,6 +2449,8 @@ enum { msLINKED };
 #define MSGC_CTRSETPC    15 // 2 args
 #define MSGC_GIVEITEM    16 // 1 arg
 #define MSGC_TAKEITEM    17 // 1 arg
+#define MSGC_WARP    18 // 6 args (dmap, screen, x, y, effect, sound
+#define MSGC_SETSCREEND    19 // 4 args (dmap, screen, reg, value)
 #define MSGC_SFX	20 // 1 arg
 #define MSGC_MIDI	21 // 1 arg
 #define MSGC_NAME	22 // 0 args, disabled
@@ -2663,6 +2675,7 @@ struct dmap
     char sideview;
     word script;
     long initD[8];
+    char initD_label[8][65];
 };
 
 // DMap flags

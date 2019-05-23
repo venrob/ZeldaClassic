@@ -17,6 +17,8 @@ namespace ZScript
 	class ASTNamespace;
 	class ASTExprIdentifier;
 	class ASTImportDecl;
+	class ASTExprCall;
+	class ASTBlock;
 
 	// CompileError.h
 	class CompileErrorHandler;
@@ -119,17 +121,17 @@ namespace ZScript
 		virtual Function* addGetter(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL)
+				int flags = 0, AST* node = NULL)
 		= 0;
 		virtual Function* addSetter(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL)
+				int flags = 0, AST* node = NULL)
 		= 0;
 		virtual Function* addFunction(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL)
+				int flags = 0, AST* node = NULL)
 		= 0;
 		virtual void setDefaultOption(CompileOptionSetting value) = 0;
 		virtual void setOption(
@@ -255,14 +257,16 @@ namespace ZScript
 	template <typename Element>
 	std::vector<Element> getInBranch(
 			Scope const& scope,
-			std::vector<Element> (Scope::* call)() const)
+			std::vector<Element> (Scope::* call)() const,
+			bool skipFile = false)
 	{
-		std::vector<Element> results = (scope.*call)();
+		std::vector<Element> results;
+		if(!(skipFile && scope.isFile())) results = (scope.*call)();
 		std::vector<Scope*> children = scope.getChildren();
 		for (std::vector<Scope*>::const_iterator it = children.begin();
 		     it != children.end(); ++it)
 		{
-			std::vector<Element> subResults = getInBranch(**it, call);
+			std::vector<Element> subResults = getInBranch(**it, call, skipFile);
 			results.insert(results.end(),
 			               subResults.begin(), subResults.end());
 		}
@@ -331,15 +335,15 @@ namespace ZScript
 		virtual Function* addGetter(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL);
+				int flags = 0, AST* node = NULL);
 		virtual Function* addSetter(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL);
+				int flags = 0, AST* node = NULL);
 		virtual Function* addFunction(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL);
+				int flags = 0, AST* node = NULL);
 		virtual void setDefaultOption(CompileOptionSetting value);
 		virtual void setOption(
 				CompileOption option, CompileOptionSetting value);
@@ -405,15 +409,15 @@ namespace ZScript
 		virtual Function* addGetter(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL);
+				int flags = 0, AST* node = NULL);
 		virtual Function* addSetter(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL);
+				int flags = 0, AST* node = NULL);
 		virtual Function* addFunction(
 				DataType const* returnType, std::string const& name,
 				std::vector<DataType const*> const& paramTypes,
-				AST* node = NULL);
+				int flags = 0, AST* node = NULL);
 		
 	protected:
 		virtual bool add(Datum&, CompileErrorHandler*);
@@ -518,6 +522,14 @@ namespace ZScript
 		Namespace* namesp;
 	};
 
+	class InlineScope : public BasicScope
+	{
+	public:
+		InlineScope(Scope* parent, FileScope* parentFile, ASTExprCall* node, ASTBlock* block);
+		ASTExprCall* node;
+		ASTBlock* block;
+	};
+	
 	enum ZClassIdBuiltin
 	{
 		ZCLASSID_START = 0,

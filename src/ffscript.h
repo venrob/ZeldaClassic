@@ -195,6 +195,59 @@ void initRunString();
 void updateRunString();
 void updateIncludePaths();
 bool checkExtension(std::string &filename, const std::string &extension);
+//String.h functions for ffscript - 2.55 Alpha 23
+void do_strcmp();
+void do_strncmp();
+void do_strcpy(const bool a, const bool b);
+void do_strlen(const bool v);
+//More string.h functions, 19th May, 2019 
+void do_arraycpy(const bool a, const bool b);
+void do_xlen(const bool v);
+void do_xtoi(const bool v);
+void do_ilen(const bool v);
+void do_atoi(const bool v);
+bool isNumber(char chr);
+int UpperToLower(std::string s);
+int LowerToUpper(std::string s);
+int ConvertCase(std::string s);
+int ilen(char *p);
+int zc_strlen(char *p);
+int atox(char *ip_str);
+void do_LowerToUpper(const bool v);
+void do_UpperToLower(const bool v);
+void do_ConvertCase(const bool v);
+
+void do_getnpcscript(const bool v);
+void do_getlweaponscript(const bool v);
+void do_geteweaponscript(const bool v);
+void do_getheroscript(const bool v);
+void do_getglobalscript(const bool v);
+void do_getdmapscript(const bool v);
+void do_getscreenscript(const bool v);
+void do_getitemspritescript(const bool v);
+void do_getuntypedscript(const bool v);
+void do_getsubscreenscript(const bool v);
+void do_getnpcbyname(const bool v);
+void do_getitembyname(const bool v);
+void do_getcombobyname(const bool v);
+void do_getdmapbyname(const bool v);
+
+
+void do_strstr();
+void do_strcat();
+void do_strspn();
+void do_strcspn();
+void do_strchr();
+void do_strrchr();
+void do_xtoi2();
+void do_remchr2();
+void do_atoi2();
+void do_ilen2();
+void do_xlen2();
+void do_itoa();
+void do_xtoa();
+
+
 
 /*
 long getQuestHeaderInfo(int type)
@@ -286,7 +339,7 @@ byte FF_link_swim_speed;
 byte subscreen_scroll_speed;
 
 void set_sarg1(int v);
-
+void clear_screen_stack();
 void setSubscreenScrollSpeed(byte n);
 int getSubscreenScrollSpeed();
 void do_fx_zap(const bool v);
@@ -656,6 +709,7 @@ static void set_screen_d(long index1, long index2, int val);
 static int whichlayer(long scr);
 static void clear_ffc_stack(const byte i);
 static void clear_global_stack();
+
 static void do_zapout();
 static void do_zapin();
 static void do_openscreen();
@@ -1286,6 +1340,7 @@ enum __Error
 
 extern long ffmisc[32][16];
 extern refInfo ffcScriptData[32];
+extern refInfo screenScriptData;
 
 extern PALETTE tempgreypal; //script greyscale
 extern PALETTE userPALETTE[256];
@@ -2129,7 +2184,78 @@ enum ASM_DEFINE
 	BMPDRAWLAYERSOLIDITYR,
 	BMPMODE7,
 	BITMAPGETPIXEL,
-	NUMCOMMANDS           //0x013F
+	NOP,
+	STRINGCOMPARE,
+	STRINGNCOMPARE,
+	STRINGLENGTH,
+	STRINGCOPY,
+	CASTBOOLI,
+	CASTBOOLF,
+	SETTRUEI,
+	SETFALSEI,
+	SETMOREI,
+	SETLESSI,
+		//2 INPUT 0 RETURN 
+	ARRAYCOPY,
+	ARRAYNCOPY,
+	    //1 INPUT, NO RETURN 
+	REMCHR,
+	STRINGUPPERLOWER,
+	STRINGLOWERUPPER,
+	STRINGCONVERTCASE,
+	    //1 input, 1 ret
+	XLEN,
+	XTOI,
+	ILEN,
+	ATOI,
+	    //2 INPUT, 1 RET
+	STRCSPN,
+	STRSTR,
+	XTOA,
+	ITOA,
+	STRCAT,
+	STRSPN,
+	STRCHR,
+	STRRCHR,
+	    //2 INP, 1 RET OVERLOADS
+	XLEN2,
+	XTOI2,
+	ILEN2,
+	ATOI2,
+	REMCHR2,    
+	    //3 INPUT 1 RET 
+	XTOA3,
+	STRCATF,
+	ITOA3,
+	STRSTR3,
+	REMNCHR3,
+	STRCAT3,
+	STRNCAT3,
+	STRCHR3,
+	STRRCHR3,
+	STRSPN3,
+	STRCSPN3,
+	UPPERTOLOWER,
+	LOWERTOUPPER,
+	CONVERTCASE,
+	//Game->Get
+	GETNPCSCRIPT,
+	GETLWEAPONSCRIPT,
+	GETEWEAPONSCRIPT,
+	GETHEROSCRIPT,
+	GETGLOBALSCRIPT,
+	GETDMAPSCRIPT,
+	GETSCREENSCRIPT,
+	GETSPRITESCRIPT,
+	GETUNTYPEDSCRIPT,
+	GETSUBSCREENSCRIPT,
+	GETNPCBYNAME,
+	GETITEMBYNAME,
+	GETCOMBOBYNAME,
+	GETDMAPBYNAME,
+
+
+	NUMCOMMANDS           //0x014D
 };
 
 
@@ -3324,13 +3450,17 @@ enum ASM_DEFINE
 #define SIMULATEKEYPRESS 		0x1351
 #define KEYBINDINGS 		0x1352
 
+#define MAPDATASCRIPT 		0x1353
+#define MAPDATAINITD 		0x1354
+#define MAPDATAINITDARRAY 		0x1355
+
 //bytecode
 
 //#define DMAPDATAGRAVITY 	//unimplemented
 //#define DMAPDATAJUMPLAYER 	//unimplemented
 //end vars
 
-#define NUMVARIABLES         	0x1353
+#define NUMVARIABLES         	0x1355
 
 // Script types
 

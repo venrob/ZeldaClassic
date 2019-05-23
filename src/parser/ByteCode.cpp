@@ -1729,6 +1729,10 @@ string VarArgument::toString()
 	case SIMULATEKEYPRESS: return "SIMULATEKEYPRESS";
 	case KEYBINDINGS: return "KEYBINDINGS";
 	
+	case MAPDATASCRIPT: return "MAPDATASCRIPT";
+	
+	case MAPDATAINITDARRAY: return "MAPDATAINITDARRAY";
+	
 	
 	
     default:
@@ -1783,9 +1787,19 @@ string OSetTrue::toString()
     return "SETTRUE " + getArgument()->toString();
 }
 
+string OSetTrueI::toString()
+{
+    return "SETTRUEI " + getArgument()->toString();
+}
+
 string OSetFalse::toString()
 {
     return "SETFALSE " + getArgument()->toString();
+}
+
+string OSetFalseI::toString()
+{
+    return "SETFALSEI " + getArgument()->toString();
 }
 
 string OSetMore::toString()
@@ -1793,9 +1807,19 @@ string OSetMore::toString()
     return "SETMORE " + getArgument()->toString();
 }
 
+string OSetMoreI::toString()
+{
+    return "SETMOREI " + getArgument()->toString();
+}
+
 string OSetLess::toString()
 {
     return "SETLESS " + getArgument()->toString();
+}
+
+string OSetLessI::toString()
+{
+    return "SETLESSI " + getArgument()->toString();
 }
 
 string OSetImmediate::toString()
@@ -1876,6 +1900,21 @@ string OWaitdraw::toString()
     return "WAITDRAW";
 }
 
+string ONoOp::toString()
+{
+	return "NOP";
+}
+
+string OCastBoolI::toString()
+{
+	return "CASTBOOLI " + getArgument()->toString();
+}
+
+string OCastBoolF::toString()
+{
+	return "CASTBOOLF " + getArgument()->toString();
+}
+
 //I would like to add a Jump instruction tot he parser, which would be 'GOTOLABEL' -Z
 string OGotoImmediate::toString()
 {
@@ -1905,6 +1944,19 @@ string OGotoLessImmediate::toString()
 string OPushRegister::toString()
 {
     return "PUSHR " + getArgument()->toString();
+}
+
+string OPushImmediate::toString()
+{
+	ostringstream oss;
+	oss << "PUSHV ";
+	Argument* arg = getArgument();
+	if (LabelArgument* label = dynamic_cast<LabelArgument*>(arg))
+		oss << label->toStringSetV();
+	else
+		oss << arg->toString();
+	return oss.str();
+    return "PUSHV " + getArgument()->toString();
 }
 
 string OPopRegister::toString()
@@ -1975,6 +2027,11 @@ string OCosRegister::toString()
 string OTanRegister::toString()
 {
     return "TANR " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+
+string Ostrlen::toString()
+{
+    return "STRINGLENGTH " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
 }
 
 string OATanRegister::toString()
@@ -2723,6 +2780,11 @@ string OIsValidNPC::toString()
 string OCopyTileRegister::toString()
 {
     return "COPYTILERR " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+
+string Ostrcpy::toString()
+{
+    return "STRINGCOPY " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
 }
 
 string OOverlayTileRegister::toString()
@@ -4447,10 +4509,217 @@ string OBMPDrawScreenCIFlagRegister::toString()
     return "BMPDRAWLAYERCIFLAGR";
 }
 
+
+string OStrCmp::toString()
+{
+    return "STRINGCOMPARE " + getArgument()->toString();
+}
+
+
+string OStrNCmp::toString()
+{
+    return "STRINGNCOMPARE " + getArgument()->toString();
+}
+
+//based on Ostrcpy
+string oARRAYCOPY::toString()
+{
+    return "ARRAYCOPY " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+
+/*to do 
+  //1 INPUT, NO RETURN 
+     { "REMCHR",                2,   0,   0,   0},
+     { "STRINGUPPERLOWER",                2,   0,   0,   0},
+     { "STRINGLOWERUPPER",                2,   0,   0,   0},
+     { "STRINGCONVERTCASE",                2,   0,   0,   0},
+     */
+
+//1 inp, 1 ret, baseds on STRINGLENGTH / Ostrlen
+
+string Oxlen::toString()
+{
+    return "XLEN " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string Oxtoi::toString()
+{
+    return "XTOI " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string Oilen::toString()
+{
+    return "ILEN " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string Oatoi::toString()
+{
+    return "ATOI " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+
+//2 inp, 1 ret, based on STRINGCOMPARE / OStrCmp
+
+string Ostrcspn::toString()
+{
+    return "STRCSPN " + getArgument()->toString();
+}
+
+string Ostrstr::toString()
+{
+    return "STRSTR " + getArgument()->toString();
+}
+
+string Oxtoa::toString()
+{
+    return "XTOA " + getArgument()->toString();
+}
+
+string Oitoa::toString()
+{
+    return "ITOA " + getArgument()->toString();
+}
+
+string Ostrcat::toString()
+{
+    return "STRCAT " + getArgument()->toString();
+}
+
+string Ostrspn::toString()
+{
+    return "STRSPN " + getArgument()->toString();
+}
+string Ostrchr::toString()
+{
+    return "STRCHR " + getArgument()->toString();
+}
+
+string Ostrrchr::toString()
+{
+    return "STRRCHR " + getArgument()->toString();
+}
+string Oxlen2::toString()
+{
+    return "XLEN2 " + getArgument()->toString();
+}
+
+string Oxtoi2::toString()
+{
+    return "XTOI2 " + getArgument()->toString();
+}
+string Oilen2::toString()
+{
+    return "ILEN2 " + getArgument()->toString();
+}
+string Oatoi2::toString()
+{
+    return "ATOI2 " + getArgument()->toString();
+}
+string Oremchr2::toString()
+{
+    return "REMCHR2 " + getArgument()->toString();
+}
+
+
+/*to do
+  //3 INPUT 1 RET 
+    { "XTOA3",		       1,   0,   0,   0},
+    { "STRCATF",		       1,   0,   0,   0},
+    { "ITOA3",		       1,   0,   0,   0},
+    { "STRSTR3",		       1,   0,   0,   0},
+    { "REMNCHR3",		       1,   0,   0,   0},
+    { "STRCAT3",		       1,   0,   0,   0},
+    { "STRNCAT3",		       1,   0,   0,   0},
+    { "STRCHR3",		       1,   0,   0,   0},
+    { "STRRCHR3",		       1,   0,   0,   0},
+    { "STRSPN3",		       1,   0,   0,   0},
+    { "STRCSPN3",		       1,   0,   0,   0},
+    
+*/
+
+
+
+
+
+
+
+
+string Ouppertolower::toString()
+{
+    return "UPPERTOLOWER " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string Olowertoupper::toString()
+{
+    return "LOWERTOUPPER " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string Oconvertcase::toString()
+{
+    return "CONVERTCASE " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+
+//Game->GetByString functions
+//similar to Oconvertcase
+
+string OGETNPCSCRIPT::toString()
+{
+    return "GETNPCSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETLWEAPONSCRIPT::toString()
+{
+    return "GETLWEAPONSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETEWEAPONSCRIPT::toString()
+{
+    return "GETEWEAPONSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETHEROSCRIPT::toString()
+{
+    return "GETHEROSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETGLOBALSCRIPT::toString()
+{
+    return "GETGLOBALSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETDMAPSCRIPT::toString()
+{
+    return "GETDMAPSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETSCREENSCRIPT::toString()
+{
+    return "GETSCREENSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETSPRITESCRIPT::toString()
+{
+    return "GETSPRITESCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETUNTYPEDSCRIPT::toString()
+{
+    return "GETUNTYPEDSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETSUBSCREENSCRIPT::toString()
+{
+    return "GETSUBSCREENSCRIPT " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETNPCBYNAME::toString()
+{
+    return "GETNPCBYNAME " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETITEMBYNAME::toString()
+{
+    return "GETITEMBYNAME " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETCOMBOBYNAME::toString()
+{
+    return "GETCOMBOBYNAME " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+string OGETDMAPBYNAME::toString()
+{
+    return "GETDMAPBYNAME " + getFirstArgument()->toString() + "," + getSecondArgument()->toString();
+}
+
+
+
 string OReturn::toString()
 {
 	return "RETURN";
 }
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 

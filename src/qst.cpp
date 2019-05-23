@@ -2697,6 +2697,20 @@ int readrules(PACKFILE *f, zquestheader *Header, bool keepdata)
     {
 	set_bit(quest_rules, qr_OLDCREATEBITMAP_ARGS, 1);    
     }
+    if ( tempheader.zelda_version == 0x254 || (tempheader.zelda_version == 0x255 && tempheader.build < 45) )
+    {
+	set_bit(quest_rules, qr_OLDQUESTMISC, 1);    
+    }
+    if ( tempheader.zelda_version < 0x254 )
+    {
+	set_bit(quest_rules, qr_OLDCREATEBITMAP_ARGS, 0);  
+	set_bit(quest_rules, qr_OLDEWPNPARENT, 0); 	    
+	set_bit(quest_rules, qr_OLDQUESTMISC, 0); 	    
+    }
+    if ( tempheader.zelda_version < 0x255 || (tempheader.zelda_version == 0x255 && tempheader.build < 46) )
+    {
+	set_bit(quest_rules, qr_CLEARINITDONSCRIPTCHANGE, 1);  	    
+    }
     //Sideview spikes in 2.50.0
     if(tempheader.zelda_version < 0x250 || (tempheader.zelda_version == 0x250 && tempheader.build<27)) //2.50.1RC3
     {
@@ -2736,6 +2750,7 @@ int readrules(PACKFILE *f, zquestheader *Header, bool keepdata)
 	{
 		set_bit(quest_rules,qr_PARSER_250DIVISION,1);
 		set_bit(quest_rules,qr_PARSER_MAX_INT_ONE_LARGER,0);
+		set_bit(quest_rules,qr_PARSER_FORCE_INLINE,0);
 	}
 	
     if(keepdata==true)
@@ -4030,6 +4045,30 @@ int readdmaps(PACKFILE *f, zquestheader *Header, word, word, word start_dmap, wo
 		for ( int q = 0; q < 8; q++ )
 		{
 			tempDMap.initD[q] = 0;
+		}
+	}
+	
+	if(s_version >= 13)
+        {
+	    for ( int q = 0; q < 8; q++ )
+	    {
+		for ( int w = 0; w < 65; w++ )
+		{
+			if(!p_getc(&tempDMap.initD_label[q][w],f,keepdata))
+			{
+				return qe_invalid;
+			} 
+		}
+		    
+	    }
+        }
+	if ( s_version < 13 )
+	{
+		tempDMap.script = 0;
+		for ( int q = 0; q < 8; q++ )
+		{
+			for ( int w = 0; w < 65; w++ )
+				tempDMap.initD_label[q][w] = 0;
 		}
 	}
 	
@@ -12734,6 +12773,20 @@ int readmapscreen(PACKFILE *f, zquestheader *Header, mapscr *temp_mapscr, zcmap 
                         return qe_invalid;
 		} 
 	}
+    }
+    if ( version >= 20 )
+    {
+	if(!p_igetw(&(temp_mapscr->script),f,true))
+	{
+		return qe_invalid;
+	} 
+	for ( int q = 0; q < 8; q++)
+	{
+		if(!p_igetl(&(temp_mapscr->screeninitd[q]),f,true))
+		{
+			return qe_invalid;
+		}
+	}		
     }
     
     //Dodongos in 2.10 used the boss roar, not the dodongo sound. -Z

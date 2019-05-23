@@ -47,7 +47,8 @@ void never_return(int index);
 void playLevelMusic();
 
 // If an enemy is this far out of the playing field, just remove it.
-#define OUTOFBOUNDS ((int)y>((tmpscr->flags7&fSIDEVIEW && canfall(id))?192:352) || y<-176 || x<-256 || x > 512)
+//#define OUTOFBOUNDS ((int)y>((tmpscr->flags7&fSIDEVIEW && canfall(id))?192:352) || y<-176 || x<-256 || x > 512)
+#define OUTOFBOUNDS ((int)y>32767 || y<-32767 || x<-32767 || x > 32767)
 
 namespace
 {
@@ -3546,13 +3547,13 @@ bool enemy::hit(weapon *w)
 
 void enemy::fix_coords(bool bound)
 {
-    if(bound)
+    if(bound && !get_bit(quest_rules,qr_OUTOFBOUNDSENEMIES))
     {
         x=vbound(x, 0, 240);
         y=vbound(y, 0, 160);
     }
     
-    if(!OUTOFBOUNDS)
+    if(!OUTOFBOUNDS && !get_bit(quest_rules,qr_OUTOFBOUNDSENEMIES))
     {
         x=(fix)((int(x)&0xF0)+((int(x)&8)?16:0));
         
@@ -15613,6 +15614,28 @@ bool parsemsgcode()
         getitem(grab_next_argument(), true);
         return true;
         
+    
+    case MSGC_WARP:
+    {
+	int    dmap =  grab_next_argument();
+	int    scrn =  grab_next_argument();
+	int    dx =  grab_next_argument();
+	int    dy =  grab_next_argument();
+	int    wfx =  grab_next_argument();
+	int    sfx =  grab_next_argument();
+	FFCore.warp_link(wtIWARP, dmap, scrn, dx, dy, wfx, sfx, 0, 0);
+	return true;
+    }
+    
+    case MSGC_SETSCREEND:
+    {
+	int dmap =     (grab_next_argument()<<7); //dmap and screen may be transposed here.
+	int screen =     grab_next_argument();
+	int reg =     grab_next_argument();
+	int val =     grab_next_argument();
+	FFCore.set_screen_d(screen + dmap, reg, val);
+	return true;
+    }
     case MSGC_TAKEITEM:
         takeitem(grab_next_argument());
         return true;

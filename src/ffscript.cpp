@@ -28,6 +28,152 @@ ZModule zcm;
 zcmodule moduledata;
 script_bitmaps scb;
 
+
+	
+	
+	
+int FFScript::UpperToLower(std::string s)
+{
+	if ( s.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to UpperToLower() is too small. Size is: %d \n", s.size());
+		return 0;
+	}
+	for ( int q = 0; q < s.size(); ++q )
+	{
+		if ( s.at(q) >= 'A' || s.at(q) <= 'Z' )
+		{
+			s.at(q) += 32;
+		}
+	}
+	return 1;
+}
+
+int FFScript::LowerToUpper(std::string s)
+{
+	if ( s.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to UpperToLower() is too small. Size is: %d \n", s.size());
+		return 0;
+	}
+	for ( int q = 0; q < s.size(); ++q )
+	{
+		if ( s.at(q) >= 'a' || s.at(q) <= 'z' )
+		{
+			s.at(q) -= 32;
+		}
+	}
+	return 1;
+}
+
+int FFScript::ConvertCase(std::string s)
+{
+	if ( s.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to UpperToLower() is too small. Size is: %d \n", s.size());
+		return 0;
+	}
+	for ( int q = 0; q < s.size(); ++q )
+	{
+		if ( s[q] >= 'a' || s[q] <= 'z' )
+		{
+			s[q] -= 32;
+		}
+		else if ( s[q] >= 'A' || s[q] <= 'Z' )
+		{
+			s[q] += 32;
+		}
+	}
+	Z_scripterrlog("FFScript::ConvertCase(std::string s), post-conversion, string is: %s\n", s.c_str());
+	return 1;
+}
+
+bool FFScript::isNumber(char chr)
+{
+	if ( chr >= '0' )
+	{
+		if ( chr <= '9' ) return true;
+	}
+	return false;
+}
+
+int FFScript::ilen(char *p)
+{
+	int ret = 0; int pos = 0;
+	if(p[pos] == '-')
+		ret++;
+	for(; FFCore.isNumber(p[pos + ret]); ++ret);
+	return ret;
+}
+
+int FFScript::zc_strlen(char *p)
+{
+   int count = 0;
+ 
+    while(*p!='\0')
+    {
+        count++;
+        p++;
+    }
+ 
+    return count;
+}
+
+int FFScript::atox(char *ip_str)
+{
+	char tmp[2]={'2','\0'};
+	int op_val=0, i=0, ip_len = FFCore.zc_strlen(ip_str);
+
+	if(strncmp(ip_str, "0x", 2) == 0)
+	{
+		ip_str +=2;
+		ip_len -=2;
+	}
+
+	for(i=0;i<ip_len;i++)
+	{
+		op_val *= 0x10;
+		switch(ip_str[i])
+		{
+			case 'a':
+			op_val += 0xa;
+			break;
+			case 'b':
+			op_val += 0xb;
+			break;
+			case 'c':
+			op_val += 0xc;
+			break;
+			case 'd':
+			op_val += 0xd;
+			break;
+			case 'e':
+			op_val += 0xe;
+			break;
+			case 'f':
+			op_val += 0xf;
+			break;
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			tmp[0] = ip_str[i];
+			op_val += atoi(tmp);
+			break;
+			default :
+			op_val += 0x0;
+			break;
+		}
+	}
+	return op_val;
+}
+
 char runningItemScripts[256] = {0};
  
 //item *FFCore.temp_ff_item = NULL;
@@ -102,6 +248,7 @@ extern std::map<int, std::pair<string, string> > lwpnmap;
 extern std::map<int, std::pair<string, string> > linkmap;
 extern std::map<int, std::pair<string, string> > dmapmap;
 extern std::map<int, std::pair<string, string> > screenmap;
+extern std::map<int, std::pair<string, string> > itemspritemap;
 
 PALETTE tempgreypal; //Palettes go here. This is used for Greyscale() / Monochrome()
 PALETTE userPALETTE[256]; //Palettes go here. This is used for Greyscale() / Monochrome()
@@ -172,6 +319,7 @@ long item_stack[256][MAX_SCRIPT_REGISTERS];
 long ffmisc[32][16];
 long link_stack[MAX_SCRIPT_REGISTERS];
 long dmap_stack[MAX_SCRIPT_REGISTERS];
+long screen_stack[MAX_SCRIPT_REGISTERS];
 refInfo ffcScriptData[32];
 
 void clear_ffc_stack(const byte i)
@@ -179,10 +327,17 @@ void clear_ffc_stack(const byte i)
     memset(ffc_stack[i], 0, MAX_SCRIPT_REGISTERS * sizeof(long));
 }
 
+
 void clear_global_stack()
 {
     //memset(global_stack, 0, MAX_SCRIPT_REGISTERS * sizeof(long));
     memset(global_stack, 0, sizeof(global_stack));
+}
+
+void FFScript::clear_screen_stack()
+{
+    //memset(global_stack, 0, MAX_SCRIPT_REGISTERS * sizeof(long));
+    memset(screen_stack, 0, sizeof(screen_stack));
 }
 
 void clear_link_stack()
@@ -2909,7 +3064,7 @@ long get_register(const long arg)
         int a = ri->d[0] / 10000;
         
         if(GuyH::loadNPC(ri->guyref, "npc->Attributes") != SH::_NoError ||
-                BC::checkBounds(a, 0, 15, "npc->Attributes") != SH::_NoError)
+                BC::checkBounds(a, 0, 31, "npc->Attributes") != SH::_NoError)
             ret = -10000;
         else
             ret = GuyH::getNPCDMisc(a) * 10000;
@@ -3803,7 +3958,7 @@ case NPCBEHAVIOUR: {
 	}
 	else
 	{
-		ret = QMisc.questmisc[indx];
+		ret = QMisc.questmisc[indx]*((get_bit(quest_rules,qr_OLDQUESTMISC)) ? 10000 : 1);
 	}
 	break;
     }
@@ -4342,6 +4497,14 @@ case SCREENDATAFLAGS:
         
     case SCRDOORD:
         ret=tmpscr->door[ri->d[0]/10000]*10000;
+        break;
+    
+    case SCREENSCRIPT:
+        ret=tmpscr->script*10000;
+        break;
+    
+    case MAPDATAINITDARRAY:
+        ret=tmpscr->screeninitd[ri->d[0]/10000]*10000;
         break;
     
     
@@ -4943,6 +5106,7 @@ case MAPDATAWARPARRIVALX: 	GET_MAPDATA_VAR_BYTE(warparrivalx, "WarpArrivalX"); b
 case MAPDATAWARPARRIVALY: 	GET_MAPDATA_VAR_BYTE(warparrivaly, "WarpArrivalY"); break;	//b
 case MAPDATAPATH: 		GET_MAPDATA_BYTE_INDEX(path, "MazePath", 3); break;	//b, 4 of these
 case MAPDATASIDEWARPSC: 	GET_MAPDATA_BYTE_INDEX(sidewarpscr, "SideWarpScreen", 3); break;	//b, 4 of these
+case MAPDATAINITD:	 	GET_MAPDATA_VAR_INDEX32(screeninitd, "InitD", 8); break;	//w, 4 of these
 case MAPDATASIDEWARPDMAP: 	GET_MAPDATA_VAR_INDEX32(sidewarpdmap, "SideWarpDMap", 3); break;	//w, 4 of these
 case MAPDATASIDEWARPINDEX: 	GET_MAPDATA_VAR_BYTE(sidewarpindex, "SideWarpIndex"); break;	//b
 case MAPDATAUNDERCOMBO: 	GET_MAPDATA_VAR_INT32(undercombo, "Undercombo"); break;	//w
@@ -4962,6 +5126,7 @@ case MAPDATASECRETCOMBO: 	GET_MAPDATA_VAR_INDEX32(secretcombo, "SecretCombo", 12
 case MAPDATASECRETCSET: 	GET_MAPDATA_BYTE_INDEX(secretcset, "SecretCSet", 127); break;	//B, 128 OF THESE
 case MAPDATASECRETFLAG: 	GET_MAPDATA_BYTE_INDEX(secretflag, "SecretFlags", 127); break;	//B, 128 OF THESE
 case MAPDATAVIEWX: 		GET_MAPDATA_VAR_INT32(viewX, "ViewX"); break;	//W
+case MAPDATASCRIPT: 		GET_MAPDATA_VAR_INT32(script, "Script"); break;	//W
 case MAPDATAVIEWY: 		GET_MAPDATA_VAR_INT32(viewY, "ViewY"); break; //W
 case MAPDATASCREENWIDTH: 	GET_MAPDATA_VAR_BYTE(scrWidth, "Width"); break;	//B
 case MAPDATASCREENHEIGHT: 	GET_MAPDATA_VAR_BYTE(scrHeight,	"Height"); break;	//B
@@ -6698,15 +6863,18 @@ void set_register(const long arg, const long value)
         }
         
         tmpscr->ffscript[ri->ffcref] = vbound(value/10000, 0, NUMSCRIPTFFC-1);
-        
+        if ( get_bit(quest_rules,qr_CLEARINITDONSCRIPTCHANGE))
+	{
+		for(int i=0; i<2; i++)
+			tmpscr->inita[ri->ffcref][i] = 0;
+            
+		for(int i=0; i<8; i++)
+			tmpscr->initd[ri->ffcref][i] = 0;
+	}
         for(int i=0; i<16; i++)
             ffmisc[ri->ffcref][i] = 0;
             
-        for(int i=0; i<2; i++)
-            tmpscr->inita[ri->ffcref][i] = 0;
-            
-        for(int i=0; i<8; i++)
-            tmpscr->initd[ri->ffcref][i] = 0;
+       
             
         ffcScriptData[ri->ffcref].Clear();
         tmpscr->initialized[ri->ffcref] = false;
@@ -8621,7 +8789,14 @@ void set_register(const long arg, const long value)
 	
 	case LWPNSCRIPT:
         if(0!=(s=checkLWpn(ri->lwpn,"Script")))
+	{
 		(((weapon*)(s))->weaponscript)=vbound(value/10000,0,NUMSCRIPTWEAPONS-1);
+		if ( get_bit(quest_rules,qr_CLEARINITDONSCRIPTCHANGE))
+		{
+			for(int q=0; q<8; q++)
+				(((weapon*)(s))->weap_initd[q]) = 0;
+		}
+	}
             
         break;
 	
@@ -8918,8 +9093,14 @@ void set_register(const long arg, const long value)
 	
 	case EWPNSCRIPT:
         if(0!=(s=checkEWpn(ri->ewpn,"Script")))
+	{
 		(((weapon*)(s))->weaponscript)=vbound(value/10000,0,NUMSCRIPTWEAPONS-1);
-            
+		if ( get_bit(quest_rules,qr_CLEARINITDONSCRIPTCHANGE))
+		{
+			for(int q=0; q<8; q++)
+				(((weapon*)(s))->weap_initd[q]) = 0;
+		}
+	}
         break;
 	
 	case EWPNINITD:
@@ -9327,6 +9508,11 @@ if(GuyH::loadNPC(ri->guyref, str) == SH::_NoError) \
 	{
 		//enemy *e = (enemy*)guys.spr(ri->guyref);
 		//e->initD[a] = value; 
+		if ( get_bit(quest_rules,qr_CLEARINITDONSCRIPTCHANGE))
+		{
+			for(int q=0; q<8; q++)
+				GuyH::getNPC()->initD[q] = 0;
+		}
 		GuyH::getNPC()->script = vbound((value/10000), 0, NUMSCRIPTGUYS-1);
 	}
     }
@@ -9338,7 +9524,7 @@ if(GuyH::loadNPC(ri->guyref, str) == SH::_NoError) \
         long a = ri->d[0] / 10000;
         
         if(GuyH::loadNPC(ri->guyref, "npc->Attributes") == SH::_NoError &&
-                BC::checkBounds(a, 0, 15, "npc->Attributes") == SH::_NoError)
+                BC::checkBounds(a, 0, 31, "npc->Attributes") == SH::_NoError)
 	
 	switch(a){
 		case 0: GuyH::getNPC()->dmisc1 = value / 10000; break;
@@ -9625,11 +9811,11 @@ if(GuyH::loadNPC(ri->guyref, str) == SH::_NoError) \
 	int indx = ri->d[0]/10000;
 	if ( indx < 0 || indx > 31 )
 	{
-		Z_scripterrlog("Invalud index used to access Game->Misc: %d\n", indx);
+		Z_scripterrlog("Invalid index used to access Game->Misc: %d\n", indx);
 	}
 	else 
 	{
-		QMisc.questmisc[indx] = value;
+		QMisc.questmisc[indx] = (value/((get_bit(quest_rules,qr_OLDQUESTMISC)) ? 10000 : 1));
 	}
 	break;
     }
@@ -10380,6 +10566,31 @@ break;
         FFScript::set_screen_d(ri->d[1]/10000 + ((ri->d[0]/10000)<<7), ri->d[2]/10000, value);
         break;
         
+    case SCREENSCRIPT:
+    {
+	//for(long i = 1; i < MAX_ZCARRAY_SIZE; i++)
+        //{
+        //    if(arrayOwner[i]==ri->ffcref)
+        //        deallocateArray(i);
+        //}
+        
+        if ( get_bit(quest_rules,qr_CLEARINITDONSCRIPTCHANGE))
+	{
+		for(int q=0; q<8; q++)
+			tmpscr->screeninitd[q] = 0;
+	}
+	screenScriptData.Clear();
+	tmpscr->script=vbound(value/10000, 0, NUMSCRIPTSCREEN-1);
+        
+       
+        break;
+        
+    }
+    
+    case MAPDATAINITD:
+        tmpscr->screeninitd[ri->d[0]/10000]=value/10000;
+        break;
+    
     case SCRDOORD:
         tmpscr->door[ri->d[0]/10000]=value/10000;
         putdoor(scrollbuf,0,ri->d[0]/10000,value/10000,true,true);
@@ -10783,6 +10994,7 @@ case MAPDATAWARPARRIVALX: 	SET_MAPDATA_VAR_BYTE(warparrivalx, "WarpArrivalX"); b
 case MAPDATAWARPARRIVALY: 	SET_MAPDATA_VAR_BYTE(warparrivaly, "WarpArrivalY"); break;	//b
 case MAPDATAPATH: 		SET_MAPDATA_BYTE_INDEX(path, "MazePath", 3); break;	//b, 4 of these
 case MAPDATASIDEWARPSC: 	SET_MAPDATA_BYTE_INDEX(sidewarpscr, "SideWarpScreen", 3); break;	//b, 4 of these
+case MAPDATAINITDARRAY:	 	SET_MAPDATA_VAR_INDEX32(screeninitd, "InitD", 8); break;	//w, 4 of these
 case MAPDATASIDEWARPDMAP: 	SET_MAPDATA_VAR_INDEX32(sidewarpdmap, "SideWarpDMap", 3); break;	//w, 4 of these
 case MAPDATASIDEWARPINDEX: 	SET_MAPDATA_VAR_BYTE(sidewarpindex, "SideWarpIndex"); break;	//b
 case MAPDATAUNDERCOMBO: 	SET_MAPDATA_VAR_INT32(undercombo, "Undercombo"); break;	//w
@@ -10805,6 +11017,34 @@ case MAPDATASECRETCOMBO: 	SET_MAPDATA_VAR_INDEX32(secretcombo, "SecretCombo", 12
 case MAPDATASECRETCSET: 	SET_MAPDATA_BYTE_INDEX(secretcset, "SecretCSet", 127); break;	//B, 128 OF THESE
 case MAPDATASECRETFLAG: 	SET_MAPDATA_BYTE_INDEX(secretflag, "SecretFlags", 127); break;	//B, 128 OF THESE
 case MAPDATAVIEWX: 		SET_MAPDATA_VAR_INT32(viewX, "ViewX"); break;	//W
+case MAPDATASCRIPT:
+{
+	if ( ri->mapsref == LONG_MAX ) 
+	{ 
+		Z_scripterrlog("Script attempted to use a mapdata->%s on a pointer that is uninitialised\n","Script"); 
+		break; 
+	} 
+	else 
+	{ 
+		mapscr *m = &TheMaps[ri->mapsref];
+		//for(long i = 1; i < MAX_ZCARRAY_SIZE; i++)
+		//{
+		//    if(arrayOwner[i]==ri->ffcref)
+		//        deallocateArray(i);
+		//}
+        
+		if ( get_bit(quest_rules,qr_CLEARINITDONSCRIPTCHANGE))
+		{
+			for(int q=0; q<8; q++)
+				tmpscr->screeninitd[q] = 0;
+		}
+		
+		screenScriptData.Clear();	
+		m->script=vbound(value/10000, 0, NUMSCRIPTSCREEN-1);
+	} 
+	break;
+	
+}
 case MAPDATAVIEWY: 		SET_MAPDATA_VAR_INT32(viewY, "ViewY"); break; //W
 case MAPDATASCREENWIDTH: 	SET_MAPDATA_VAR_BYTE(scrWidth, "Width"); break;	//B
 case MAPDATASCREENHEIGHT: 	SET_MAPDATA_VAR_BYTE(scrHeight,	"Height"); break;	//B
@@ -12839,6 +13079,14 @@ void do_rshift(const bool v)
     long temp = SH::get_arg(sarg2, v) / 10000;
     long temp2 = get_register(sarg1) / 10000;
     set_register(sarg1, (temp2 >> temp) * 10000);
+}
+
+///----------------------------------------------------------------------------------------------------//
+//Casting
+
+void do_boolcast(const bool isFloat)
+{
+	set_register(sarg1, (get_register(sarg1) ? (isFloat ? 1 : 10000) : 0));
 }
 
 ///----------------------------------------------------------------------------------------------------//
@@ -14925,8 +15173,17 @@ bool FFScript::warp_link(int warpType, int dmapID, int scrID, int warpDestX, int
 		}
 		else
 		{
-			Z_scripterrlog("Invalid Warp Return Square Type (%d) provided as an arg to Link->WarpEx().\n",warpDestY);
-			return false;
+			if ( (unsigned)warpDestY == 5 )
+			{
+				//Pit warp
+				wx = Link.getX();
+				wy = Link.getY();
+			}
+			else
+			{
+				Z_scripterrlog("Invalid Warp Return Square Type (%d) provided as an arg to Link->WarpEx().\n",warpDestY);
+				return false;
+			}
 		}
 	}
 	else 
@@ -15893,7 +16150,7 @@ void do_getffcscript()
     int num=-1;
     ArrayH::getString(arrayptr, name, 256); // What's the limit on name length?
     
-    for(int i=0; i<512; i++)
+    for(int i=0; i<NUMSCRIPTFFC; i++)
     {
         if(strcmp(name.c_str(), ffcmap[i].second.c_str())==0)
         {
@@ -16071,6 +16328,7 @@ int run_script(const byte type, const word script, const long i)
     
     switch(type)
     {
+	    //Z_scripterrlog("The script type is: %d\n", type);
 	    case SCRIPT_FFC:
 	    {
 		ri = &(ffcScriptData[i]);
@@ -16378,12 +16636,17 @@ int run_script(const byte type, const word script, const long i)
 	    
 	    case SCRIPT_SCREEN:
 	    {
-		ri = &screenScriptData;
-		
+		Z_scripterrlog("FFScript found a screen script to run, id: %d\n", script);
+		ri = &(screenScriptData);
 		curscript = screenscripts[script];
-		    //should this become ri = &(globalScriptData[screen_slot]);
-		stack = &global_stack[GLOBAL_STACK_SCREEN];
-		    //
+		stack = &(screen_stack);
+		for ( int q = 0; q < 8; q++ ) 
+		{
+			//ri->d[q] = (int)GuyH::getNPC()->initD[q];
+			ri->d[q] = tmpscr->screeninitd[q];// * 10000;
+			//ri->d[q] = guys.spr(GuyH::getNPCIndex(i))->initD[q]; //w->initiald[q];
+		}
+		
 	    }
 	    break;
 	    
@@ -16543,6 +16806,23 @@ int run_script(const byte type, const word script, const long i)
 		    set_register(sarg1, (!(ri->scriptflag & MOREFLAG)
 					 || (ri->scriptflag & TRUEFLAG)) ? 1 : 0);
 		    break;
+		
+		case SETTRUEI:
+		    set_register(sarg1, (ri->scriptflag & TRUEFLAG) ? 10000 : 0);
+		    break;
+		    
+		case SETFALSEI:
+		    set_register(sarg1, (ri->scriptflag & TRUEFLAG) ? 0 : 10000);
+		    break;
+		    
+		case SETMOREI:
+		    set_register(sarg1, (ri->scriptflag & MOREFLAG) ? 10000 : 0);
+		    break;
+		    
+		case SETLESSI:
+		    set_register(sarg1, (!(ri->scriptflag & MOREFLAG)
+					 || (ri->scriptflag & TRUEFLAG)) ? 10000 : 0);
+		    break;
 		    
 		case NOT:
 		    do_not(false);
@@ -16654,6 +16934,13 @@ int run_script(const byte type, const word script, const long i)
 		    do_getitemscript();
 		    break;
 		    
+		case CASTBOOLI:
+			do_boolcast(false);
+			break;
+			
+		case CASTBOOLF:
+			do_boolcast(true);
+			break;
 		    
 		case ADDV:
 		    do_add(true);
@@ -16718,6 +17005,10 @@ int run_script(const byte type, const word script, const long i)
 		case TANR:
 		    do_trig(false, 2);
 		    break;
+		
+		case STRINGLENGTH:
+			FFCore.do_strlen(false);
+			break;
 		    
 		case ARCSINR:
 		    do_asin(false);
@@ -16730,6 +17021,49 @@ int run_script(const byte type, const word script, const long i)
 		case ARCTANR:
 		    do_arctan();
 		    break;
+		
+		//String.h functions 2.55 Alpha 23
+		case STRINGCOMPARE: FFCore.do_strcmp(); break;
+		case STRINGCOPY: FFCore.do_strcpy(false,false); break;
+		case ARRAYCOPY: FFCore.do_arraycpy(false,false); break;
+		case STRINGNCOMPARE: FFCore.do_strncmp(); break;
+		
+		//More string.h functions, 19th May, 2019 
+		case XLEN: FFCore.do_xlen(false); break;
+		case XTOI: FFCore.do_xtoi(false); break;
+		case ILEN: FFCore.do_ilen(false); break;
+		case ATOI: FFCore.do_atoi(false); break;
+		case STRCSPN: FFCore.do_strcspn(); break;
+		case STRSTR: FFCore.do_strstr(); break;
+		case XTOA: FFCore.do_xtoa(); break;
+		case ITOA: FFCore.do_itoa(); break;
+		case STRCAT: FFCore.do_strcat(); break;
+		case STRSPN: FFCore.do_strspn(); break;
+		case STRCHR: FFCore.do_strchr(); break;
+		case STRRCHR: FFCore.do_strrchr(); break;
+		case XLEN2: FFCore.do_xlen2(); break;
+		case XTOI2: FFCore.do_xtoi2(); break;
+		case ILEN2: FFCore.do_ilen2(); break;
+		case ATOI2: FFCore.do_atoi2(); break;
+		case REMCHR2: FFCore.do_remchr2(); break;
+		case UPPERTOLOWER: FFCore.do_UpperToLower(false); break;
+		case LOWERTOUPPER: FFCore.do_LowerToUpper(false); break;
+		case CONVERTCASE: FFCore.do_ConvertCase(false); break;
+			
+		case GETNPCSCRIPT:	FFCore.do_getnpcscript(false); break;
+		case GETLWEAPONSCRIPT:	FFCore.do_getlweaponscript(false); break;
+		case GETEWEAPONSCRIPT:	FFCore.do_geteweaponscript(false); break;
+		case GETHEROSCRIPT:	FFCore.do_getheroscript(false); break;
+		case GETGLOBALSCRIPT:	FFCore.do_getglobalscript(false); break;
+		case GETDMAPSCRIPT:	FFCore.do_getdmapscript(false); break;
+		case GETSCREENSCRIPT:	FFCore.do_getscreenscript(false); break;
+		case GETSPRITESCRIPT:	FFCore.do_getitemspritescript(false); break;
+		case GETUNTYPEDSCRIPT:	FFCore.do_getuntypedscript(false); break;
+		case GETSUBSCREENSCRIPT:FFCore.do_getsubscreenscript(false); break;
+		case GETNPCBYNAME:	FFCore.do_getnpcbyname(false); break;
+		case GETITEMBYNAME:	FFCore.do_getitembyname(false); break;
+		case GETCOMBOBYNAME:	FFCore.do_getcombobyname(false); break;
+		case GETDMAPBYNAME:	FFCore.do_getdmapbyname(false); break;
 		    
 		case ABSR:
 		    do_abs(false);
@@ -18373,6 +18707,9 @@ int run_script(const byte type, const word script, const long i)
 		    FFCore.do_set_oggex_speed(false);
 		    break;
 		
+		case NOP: //No Operation. Do nothing. -V
+			break;
+		
 		default:
 		{
 		    Z_scripterrlog("Invalid ZASM command %ld reached\n", scommand);
@@ -18511,6 +18848,9 @@ int run_script(const byte type, const word script, const long i)
 			//w->weaponscript = 0;
 			break;
 		}
+		case SCRIPT_SCREEN:
+		    tmpscr->script = 0;
+		    break;
         }
     }
     else
@@ -18550,6 +18890,10 @@ int ffscript_engine(const bool preload)
             
         ZScriptVersion::RunScript(SCRIPT_FFC, tmpscr->ffscript[i], i);
         tmpscr->initialized[i] = true;
+    }
+    if ( tmpscr->script != 0 )
+    {
+	ZScriptVersion::RunScript(SCRIPT_SCREEN, tmpscr->script, 0);    
     }
     
     return 0;
@@ -22375,6 +22719,596 @@ bool FFScript::checkExtension(std::string &filename, const std::string &extensio
     int dot = filename.find_last_of(".");
     std::string exten = (dot == std::string::npos ? "" : filename.substr(dot, filename.length() - dot));
     return exten == extension;
+}
+
+void FFScript::do_strcmp()
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	long arrayptr_b = ri->d[1]/10000;
+	string strA;
+	string strB;
+	FFCore.getString(arrayptr_a, strA);
+	FFCore.getString(arrayptr_b, strB);
+	set_register(sarg1, (strcmp(strA.c_str(), strB.c_str()) * 10000));
+}
+
+void FFScript::do_LowerToUpper(const bool v)
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	if ( strA.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to UpperToLower() is too small. Size is: %d \n", strA.size());
+		set_register(sarg1, 0); return;
+	}
+	for ( int q = 0; q < strA.size(); ++q )
+	{
+		if(( strA[q] >= 'a' || strA[q] <= 'z' ) || ( strA[q] >= 'A' || strA[q] <= 'Z' ))
+		{
+			if ( strA[q] < 'a' ) { continue; }
+			else strA[q] -= 32;
+			continue;
+		}
+		//else if ( strA[q] >= 'A' || strA[q] <= 'Z' )
+		//{
+		//	strA[q] += 32;
+		//	continue;
+		//}
+	}
+	//Z_scripterrlog("Converted string is: %s \n", strA.c_str());
+	if(ArrayH::setArray(arrayptr_a, strA.c_str()) == SH::_Overflow)
+	{
+		Z_scripterrlog("Dest string supplied to 'LowerToUpper()' not large enough\n");
+		set_register(sarg1, 0);
+	}
+	else set_register(sarg1, (10000));
+}
+
+void FFScript::do_UpperToLower(const bool v)
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	if ( strA.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to UpperToLower() is too small. Size is: %d \n", strA.size());
+		set_register(sarg1, 0); return;
+	}
+	for ( int q = 0; q < strA.size(); ++q )
+	{
+		if(( strA[q] >= 'a' || strA[q] <= 'z' ) || ( strA[q] >= 'A' || strA[q] <= 'Z' ))
+		{
+			if ( strA[q] < 'a' ) { strA[q] += 32; }
+			else continue;
+			continue;
+		}
+		//else if ( strA[q] >= 'A' || strA[q] <= 'Z' )
+		//{
+		//	strA[q] += 32;
+		//	continue;
+		//}
+	}
+	//Z_scripterrlog("Converted string is: %s \n", strA.c_str());
+	if(ArrayH::setArray(arrayptr_a, strA.c_str()) == SH::_Overflow)
+	{
+		Z_scripterrlog("Dest string supplied to 'LowerToUpper()' not large enough\n");
+		set_register(sarg1, 0);
+	}
+	else set_register(sarg1, (10000));
+}
+
+void FFScript::do_getnpcscript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTGUYS; q++)
+	{
+		if(!(strcmp(the_string.c_str(), npcmap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_getlweaponscript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTWEAPONS; q++)
+	{
+		if(!(strcmp(the_string.c_str(), lwpnmap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_geteweaponscript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTWEAPONS; q++)
+	{
+		if(!(strcmp(the_string.c_str(), ewpnmap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_getheroscript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTLINK; q++)
+	{
+		if(!(strcmp(the_string.c_str(), linkmap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_getglobalscript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTGLOBAL; q++)
+	{
+		if(!(strcmp(the_string.c_str(), globalmap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_getdmapscript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTSDMAP; q++)
+	{
+		if(!(strcmp(the_string.c_str(), dmapmap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_getscreenscript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTSCREEN; q++)
+	{
+		if(!(strcmp(the_string.c_str(), screenmap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_getitemspritescript(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int script_num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < NUMSCRIPTSITEMSPRITE; q++)
+	{
+		if(!(strcmp(the_string.c_str(), itemspritemap[q].second.c_str())))
+		{
+			script_num = q+1;
+			break;
+		}
+	}
+	set_register(sarg1, (script_num * 10000));
+}
+//Not assigned to slots at present. If they ever are, then this would get the id of any script (any type) by name. -Z
+void FFScript::do_getuntypedscript(const bool v)
+{
+	set_register(sarg1, 0);
+	//long arrayptr = ri->d[0]/10000;
+	//string the_string;
+	//int script_num = -1;
+	//FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	//for(int q = 0; q < NUMSCRIPTSITEMSPRITE; q++)
+	//{
+	//	if(!(strcmp(the_string.c_str(), itemspritemap[q].second.c_str())))
+	//	{
+	//		script_num = q+1;
+	//		break;
+	//	}
+	//}
+	//set_register(sarg1, (script_num * 10000));
+}
+void FFScript::do_getsubscreenscript(const bool v)
+{
+	//long arrayptr = ri->d[0]/10000;
+	//string the_string;
+	//int script_num = -1;
+	//FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	//for(int q = 0; q < NUMSCRIPTSUBSCREEN; q++)
+	//{
+	//	if(!(strcmp(the_string.c_str(), subscreenmap[q].second.c_str())))
+	//	{
+	//		script_num = q+1;
+	//		break;
+	//	}
+	//}
+	//set_register(sarg1, (script_num * 10000));
+	set_register(sarg1, 0); //Remove this line, when we add this script type, then un-comment the rest. -Z
+}
+void FFScript::do_getnpcbyname(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < MAXNPCS; q++)
+	{
+		if(!(strcmp(the_string.c_str(), guy_string[q])))
+		{
+			num = q;
+			break;
+		}
+	}
+	set_register(sarg1, (num * 10000));
+}	
+void FFScript::do_getitembyname(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < MAXNPCS; q++)
+	{
+		if(!(strcmp(the_string.c_str(), item_string[q])))
+		{
+			num = q;
+			break;
+		}
+	}
+	set_register(sarg1, (num * 10000));
+}	
+void FFScript::do_getcombobyname(const bool v)
+{
+	set_register(sarg1, 0); //Until I add combo labels. -Z
+	
+}
+void FFScript::do_getdmapbyname(const bool v)
+{
+	long arrayptr = ri->d[0]/10000;
+	string the_string;
+	int num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < MAXNPCS; q++)
+	{
+		if(!(strcmp(the_string.c_str(), DMaps[q].title)))
+		{
+			num = q;
+			break;
+		}
+	}
+	set_register(sarg1, (num * 10000));
+}
+
+void FFScript::do_ConvertCase(const bool v)
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	if ( strA.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to UpperToLower() is too small. Size is: %d \n", strA.size());
+		set_register(sarg1, 0); return;
+	}
+	for ( int q = 0; q < strA.size(); ++q )
+	{
+		if(( strA[q] >= 'a' || strA[q] <= 'z' ) || ( strA[q] >= 'A' || strA[q] <= 'Z' ))
+		{
+			if ( strA[q] < 'a' ) { strA[q] += 32; }
+			else strA[q] -= 32;
+			continue;
+		}
+		//else if ( strA[q] >= 'A' || strA[q] <= 'Z' )
+		//{
+		//	strA[q] += 32;
+		//	continue;
+		//}
+	}
+	//Z_scripterrlog("Converted string is: %s \n", strA.c_str());
+	if(ArrayH::setArray(arrayptr_a, strA.c_str()) == SH::_Overflow)
+	{
+		Z_scripterrlog("Dest string supplied to 'LowerToUpper()' not large enough\n");
+		set_register(sarg1, 0);
+	}
+	else set_register(sarg1, (10000));
+}
+
+void FFScript::do_xlen(const bool v)
+{
+	//not implemented, xlen not found
+	//Z_scripterrlog("Running: %s\n","strlen()");
+	long arrayptr = (SH::get_arg(sarg2, v) / 10000);
+	string str;
+	FFCore.getString(arrayptr, str);
+	//Z_scripterrlog("strlen string size is: %d\n", str.length());
+	//set_register(sarg1, (xlen(str.c_str()) * 10000));
+}
+void FFScript::do_xtoi(const bool v)
+{
+	//not implemented, xtoi not found
+	//Z_scripterrlog("Running: %s\n","strlen()");
+	long arrayptr = (SH::get_arg(sarg2, v) / 10000);
+	string str;
+	FFCore.getString(arrayptr, str);
+	//Z_scripterrlog("strlen string size is: %d\n", str.length());
+	//set_register(sarg1, (xtoi(str.c_str()) * 10000));
+}
+void FFScript::do_ilen(const bool v)
+{
+	long arrayptr = (SH::get_arg(sarg2, v) / 10000);
+	string str;
+	FFCore.getString(arrayptr, str);
+	//Z_scripterrlog("strlen string size is: %d\n", str.length());
+	set_register(sarg1, (FFCore.ilen((char*)str.c_str()) * 10000));
+}
+void FFScript::do_atoi(const bool v)
+{
+	long arrayptr = (SH::get_arg(sarg2, v) / 10000);
+	string str;
+	FFCore.getString(arrayptr, str);
+	set_register(sarg1, (atoi(str.c_str()) * 10000));
+}
+
+
+
+void FFScript::do_strstr()
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	long arrayptr_b = ri->d[1]/10000;
+	string strA;
+	string strB;
+	FFCore.getString(arrayptr_a, strA);
+	FFCore.getString(arrayptr_b, strB);
+	if ( strA.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to strstr() is too small. Size is: %d \n", strA.size());
+		set_register(sarg1,-10000);
+		return;
+	}
+	set_register(sarg1, (strA.find(strB) * 10000));
+}
+
+void FFScript::do_strcat()
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	long arrayptr_b = ri->d[1]/10000;
+	string strA;
+	string strB;
+	FFCore.getString(arrayptr_a, strA);
+	FFCore.getString(arrayptr_b, strB);
+	//char str_c[2048];
+	//strcpy(str_c, strA.c_str());
+	string strC = strA + strB;
+	//Z_scripterrlog("strcat string: %s\n", strC.c_str());
+	if(ArrayH::setArray(arrayptr_a, strC.c_str()) == SH::_Overflow)
+	{
+		Z_scripterrlog("Dest string supplied to 'strcat()' not large enough\n");
+		set_register(sarg1, 0);
+	}
+	//set_register(sarg1, (strcat((char)strA.c_str(), strB.c_str()) * 10000));
+	else set_register(sarg1, arrayptr_a); //returns the pointer to the dest
+}
+void FFScript::do_strspn()
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	long arrayptr_b = ri->d[1]/10000;
+	string strA;
+	string strB;
+	FFCore.getString(arrayptr_a, strA);
+	FFCore.getString(arrayptr_b, strB);
+	set_register(sarg1, (strspn(strA.c_str(), strB.c_str()) * 10000));
+}
+
+void FFScript::do_strcspn()
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	long arrayptr_b = ri->d[1]/10000;
+	string strA;
+	string strB;
+	FFCore.getString(arrayptr_a, strA);
+	FFCore.getString(arrayptr_b, strB);
+	set_register(sarg1, (strcspn(strA.c_str(), strB.c_str()) * 10000));
+}
+
+void FFScript::do_strchr()
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	char chr_to_find = (ri->d[1]/10000);
+	string strA; 
+	FFCore.getString(arrayptr_a, strA);
+	if ( strA.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to strchr() is too small. Size is: %d \n", strA.size());
+		set_register(sarg1,-10000);
+		return;
+	}
+	
+	set_register(sarg1,strA.find_first_of(chr_to_find)*10000);
+}
+void FFScript::do_strrchr()
+{
+	long arrayptr_a = ri->d[0]/10000;
+	char chr_to_find = (ri->d[1]/10000);
+	string strA; 
+	FFCore.getString(arrayptr_a, strA);
+	if ( strA.size() < 1 ) 
+	{
+		Z_scripterrlog("String passed to strrchr() is too small. Size is: %d \n", strA.size());
+		set_register(sarg1,-10000);
+		return;
+	}
+	set_register(sarg1,strA.find_last_of(chr_to_find)*10000);
+}
+void FFScript::do_xtoi2()
+{
+	//Not implemented, xtoi not found
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	//set_register(sarg1, (xtoi(strA.c_str(), (ri->d[1]/10000)) * 10000));
+}
+void FFScript::do_remchr2()
+{
+	//Not implemented, remchr not found
+	//not part of any standard library
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	//set_register(sarg1, (remchr(strA.c_str(), (ri->d[1]/10000)) * 10000));
+}
+void FFScript::do_atoi2()
+{
+	//not implemented; atoi does not take 2 params
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	//set_register(sarg1, (atoi(strA.c_str(), (ri->d[1]/10000)) * 10000));
+}
+void FFScript::do_ilen2()
+{
+	//not implemented, ilen not found
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	//set_register(sarg1, (ilen(strA.c_str(), (ri->d[1]/10000)) * 10000));
+}
+void FFScript::do_xlen2()
+{
+	//not implemented, xlen not found
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	//set_register(sarg1, (xlen(strA.c_str(), (ri->d[1]/10000)) * 10000));
+}
+void FFScript::do_itoa()
+{
+	
+	long arrayptr_a = ri->d[1]/10000;
+	int value = ri->d[0]/10000;
+	char the_string[13];
+	_itoa(value, the_string, 10);
+	//Returns the number of characters used. 
+	if(ArrayH::setArray(arrayptr_a, the_string) == SH::_Overflow)
+		Z_scripterrlog("Dest string supplied to 'itoa()' not large enough\n");
+	set_register(sarg1, (FFCore.zc_strlen(the_string)*10000));
+}
+void FFScript::do_xtoa()
+{
+	//not implemented, xtoa not found
+	long arrayptr_a = ri->d[0]/10000;
+	string strA;
+	FFCore.getString(arrayptr_a, strA);
+	//set_register(sarg1, (xtoa(strA.c_str(), (ri->d[1]/10000)) * 10000));
+}
+
+void FFScript::do_strcpy(const bool a, const bool b)
+{
+	long arrayptr_b = SH::get_arg(sarg1, a) / 10000;
+	long arrayptr_a = SH::get_arg(sarg2, b) / 10000;
+    
+	string strA;
+
+	FFCore.getString(arrayptr_a, strA);
+
+	if(ArrayH::setArray(arrayptr_b, strA.c_str()) == SH::_Overflow)
+		Z_scripterrlog("Dest string supplied to 'strcpy()' not large enough\n");
+}
+void FFScript::do_arraycpy(const bool a, const bool b)
+{
+	long arrayptr_b = SH::get_arg(sarg1, a) / 10000;
+	long arrayptr_a = SH::get_arg(sarg2, b) / 10000;
+	long *P = NULL;
+	FFCore.getValues(arrayptr_a,P, FFCore.getSize(arrayptr_a));
+	//ZScriptArray& a = FFCore.getArray(arrayptr_a);
+	FFCore.setArray(arrayptr_b, FFCore.getSize(arrayptr_a), P);
+
+	//if(ArrayH::setArray(arrayptr_b, a.size(), a) == SH::_Overflow)
+	//	Z_scripterrlog("Dest string supplied to 'ArrayCopy()' not large enough\n");
+}
+void FFScript::do_strlen(const bool v)
+{
+	//Z_scripterrlog("Running: %s\n","strlen()");
+	long arrayptr = (SH::get_arg(sarg2, v) / 10000);
+	string str;
+	FFCore.getString(arrayptr, str);
+	//Z_scripterrlog("strlen string size is: %d\n", str.length());
+	set_register(sarg1, (str.length() * 10000));
+}
+
+void FFScript::do_strncmp()
+{
+	
+	long arrayptr_a = ri->d[0]/10000;
+	long arrayptr_b = ri->d[3]/10000;
+	long len = ri->d[2]/10000;
+	//for ( int q = 0; q < 8; q++ )
+	//{
+	//	Z_scripterrlog("(ri->d[%d]) is %d\n", q, (ri->d[q]/10000));
+	//	
+	//}
+	
+	string strA;
+	string strB;
+	FFCore.getString(arrayptr_a, strA);
+	FFCore.getString(arrayptr_b, strB);
+	set_register(sarg1, (strncmp(strA.c_str(), strB.c_str(), len) * 10000));
 }
 
 void FFScript::do_npc_canmove(const bool v)

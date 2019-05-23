@@ -6,8 +6,8 @@
 The following documents the changes, and expansions to the ZScript language in ZQuest/ZC 
 	versions 2.54, and 2.55. 
 	
-Document for: 2.55, Alpha 22
-Document Revision: 6th May, 2019
+Document for: 2.55, Alpha 23
+Document Revision: 20th May, 2019
 
 
 ////////////////////////////////////////////////////
@@ -280,6 +280,36 @@ TOKEN: dmapdata script
 *
 * Trying to modify the script while it is running with this->Script, is untested.
 
+
+//////////////////////
+/// Screen Scripts ///
+//////////////////////
+
+TOKEN: screendata script
+
+* You can now compile and assign scripts to individual screens.
+* The 'this' pointer for dmapdata scripts is Screen->.
+*
+* This script can run for multiple frames, and it runs after ffcs, but on screen init.
+* Thus, if you have ffcs that do not run on screen init, this runs first, otherwise it runs after ffc 32.
+*
+* DMap scripts run only on screens where they are set to run.
+* Warping to a screen with a screen script will start that script.
+*
+* You can assign this script to a screen in the SCREEN SCRIPT EDITOR dialogue. 
+*	To do this, access the Screen menu, and select the entry 'Script'.
+*
+* You may assign scripts to screens from other scripts, via Screen->Script, or mapdata->Script
+* 	on an initialised mapdata pointer.
+*
+* Screen Scripts have eight InitD[] args, in the SCREEN SCRIPT EDITOR for this script type.
+* 	You may assign values to these in the SCREEN SCRIPT EDITOR, but you may not label the fields
+* 	for these InitD values in the SCREEN SCRIPT EDITOR.
+* 	You may also read or write to them by script with Screen->InitD[] (or mapdata->InitD[], or this->InitD[]).
+*
+* Trying to modify the script while it is running with this->Script, is untested.
+
+
 //////////////////////////
 /// itemsprite Scripts ///
 //////////////////////////
@@ -301,10 +331,6 @@ TOKEN: itemsprite script
 * 	You may also read or write to them by script with item>InitD[] (or this->InitD[])
 *
 * Trying to modify the script while it is running with this->Script, is untested.
-
-
-//screendata script : t/b/a
-
 
 
 ///////////////////////////
@@ -330,6 +356,17 @@ It is now possible to permit item scripts to run for more than one frame.
 	#ignore error(error_number) {error_generating_code}
 	#ignore warning(error_number) {error_generating_code}
 	catch(error_number) {error_generating_code}
+	
+
+//////////////////////
+// import, #include //
+//////////////////////
+
+The import directive now checks include paths. 
+Order and Priority: It first checks an absolute path, then relative to the ZQ binaries,
+	then include paths. 
+	
+The new directive, #include, checks include paths first, then root, then absolute. 
 	
 
 ///////////////////
@@ -670,6 +707,39 @@ Using the above namespaces as examples:
 	*	Data saved to these may become invalid and require manual cleansing by the user!
 	*	Only the value of a pointer is saved, not the struct data associated with that pointer.
 
+////////////
+// Unless //
+////////////
+
+This statement runs the code block attached to it if its statement would evaluate false
+in an if statement.
+
+Example: 
+	int x = 6; int y;
+	unless(x==6)
+	{
+		y = 1;
+	}
+	
+	In this example, the code block would never run, because x == 6. 
+	This is the opposite of 'if', and supports 'else unless' and 'else'
+	blocks following the unless statement.
+	
+////////////
+// Repeat //
+////////////
+
+Repeats a command a given number of times.
+The value passed to repeat(const int v) bust be constant at compile time.
+
+Example:
+	const int N = 10;
+	int x;
+	repeat(N { ++x; }
+	
+This is similar to a for loop, but it produces faster ZASM, because the number
+of iterations is known at compile-time.
+
 /////////////////////
 // Until, do-until //
 /////////////////////
@@ -897,6 +967,74 @@ Using the above namespaces as examples:
 //////////////
 //  Global  //
 //////////////
+
+int utol(*string);
+ * Converts all uppercase characters in a string to lowercase characters.
+ * Returns the pointer to the string.
+ * String MUST not be a literal.
+ 
+int ltou(*string);
+ * Converts all lowercase characters in a string to uppercase characters.
+ * Returns the pointer to the string.
+ * String MUST not be a literal.
+ 
+int convcase(*string);
+ * Converts all lowercase characters in a string to uppercase characters, and
+ * all uppercase characters in a string to lowercase characters.
+ * Returns the pointer to the string.
+ * String MUST not be a literal.
+
+int ilen(string[]);
+ * Returns the number of characters used by a number in the string.
+ * Includes the sign, if negative. 
+
+int itoa(int value, dest_string[]);
+ * Places value into a string as char. 
+ * Returns the number of characters used in the conversion. 
+
+int strcmp(string_a[], string_b[]);
+ * Iterates through string_a and string_b until a character is found which is not the same in
+ * both strings, and then returns > 0 if the character is larger in str1, and < 0 if it is
+ * larger in str2. Returns 0 if the strings are equal.
+ * The old string.zh version of this function is still available as:
+ * std::string::strcmp(*a, *b).
+ 
+int strncmp(string_a[], string_b[], int num_chars);
+ * As strcmp(*a, *b), but compares only the first nth characters, specified as num_chars.
+ * The old string.zh version of this function is still available as:
+ * std::string::strncmp(*a, *b, int).
+
+int strlen(string[]);
+ * Returns the length of a string in characters.
+ * The old string.zh version of this function is still available as:
+ * std::string::strlen(*a).
+
+void strcpy(string_dest[], string_src[]);
+ * Copies string string_src into string_dest.
+ * The old string.zh version of this function is still available as:
+ * std::string::strcpy(*a,*b).
+ 
+int atoi(string[]);
+ * Returns the decimal value of a string consisting of a number.
+ * e.g. ("26" would return 26).
+ 
+int strcat(atring_a[], string_b[]);
+ * Append the contents of string_b onto string_a.
+ * Returns the pointer to string_a.
+ 
+int strchr(string[], int chr);
+ * Returns the first index in string that matches 'chr'.
+
+int strrchr(string[], int chr);
+ * Reverse of strchr, finding the last instance of a character in a string.
+ 
+int strspn(string[], string_keys[]);
+ * Returns the number of characters in a string before a character not contained in
+ * 'string_keys' is found
+ 
+int strcspn(string[], string_keys[]);
+ * Returns the length of characters in a string before a character contained in
+ * 'string_keys' is found
  
 int GetSystemTime(int index);
  * Returns the time (Real Time Clock) data from the system on which ZC is running.
@@ -926,6 +1064,63 @@ untyped Untype(any)
 //  Game  //
 ////////////
 
+Adds ZScript:
+
+Game->GetNPCScript("name");
+ * Returns the slot ID of the npc script 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetLWeaponScript("name");
+ * Returns the slot ID of the lweapon script 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetEWeaponScript("name");
+ * Returns the slot ID of the eweapon script 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetHeroScript("name");
+Game->GetLinkScript("name");
+Game->GetPlayerScript("name");
+ * Returns the slot ID of the hero script 'name'.
+ * Returns -1 if there is no match.
+
+Game->GetDMapScript("name");
+ * Returns the slot ID of the dmapdata script 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetScreenScript("name");
+ * Returns the slot ID of the screendata script 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetSubscreenScript("name");
+ * Returns the slot ID of the subscreen script 'name'.
+ * Returns -1 if there is no match.
+ * Thos script type is not implemented at this time.
+ 
+Game->GetUntypedScript("name");
+ * Returns 0; not implemented as this script type has no slot assignment at this time.
+ 
+Game->GetItemSpriteScript("name");
+ * Returns the slot ID of the itemsprite script 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetNPC("name");
+ * Returns the ID of the npc 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetItem("name");
+ * Returns the ID of the item 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetDMap("name");
+ * Returns the ID of the DMap 'name'.
+ * Returns -1 if there is no match.
+ 
+Game->GetCombo("name");
+ * Returns the ID of the combo with label 'name'.
+ * Returns -1 if there is no match.
+ * Combo labels are not yet implemented.
+ 
 bool FFRules[800];
  * An array consisting of all quest rules. 
 
@@ -1093,6 +1288,12 @@ int GetPointer(bool *ptr[]);
 ////////////////
 ///  Screen  ///
 ////////////////
+
+int Script; 
+ * Returns the ID of the script set to the screen, or sets the script that this screen runs.
+ 
+untyped InitD[8];
+ * The eight script args for the script that runs on this screen.
 
 lweapon CreateLWeaponDx(int type, int baseitem)
  * Create an lweapon with sprites, sounds, and other values set as if it was generated by a specific item.
@@ -2324,6 +2525,12 @@ void GetMusic();
 /////////////////
 ///  mapdata  ///
 /////////////////
+
+int Script; 
+ * Returns the ID of the script set to the mapscreen, or sets the script that this mapscreen runs.
+ 
+untyped InitD[8];
+ * The eight script args for the script that runs on this mapscreen.
 
 bool isSolid(int x, int y);
  * As Screen->isSolid(int x, int y), for any mapscreen.

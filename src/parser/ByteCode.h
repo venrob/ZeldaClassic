@@ -1116,8 +1116,10 @@ using namespace std;
 #define KEYMODIFIERS 			1047
 #define SIMULATEKEYPRESS 			1048
 #define KEYBINDINGS 			1049
+#define MAPDATASCRIPT 			1050
+#define MAPDATAINITDARRAY 			1051
 
-#define LAST_BYTECODE 		1050
+#define LAST_BYTECODE 		1052
 
 //END OF BYTECODE
 
@@ -1305,6 +1307,17 @@ namespace ZScript
 		}
 	};
 
+	class OSetTrueI : public UnaryOpcode
+	{
+	public:
+		OSetTrueI(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OSetTrueI(a->clone());
+		}
+	};
+
 	class OSetFalse : public UnaryOpcode
 	{
 	public:
@@ -1313,6 +1326,17 @@ namespace ZScript
 		Opcode *clone()
 		{
 			return new OSetFalse(a->clone());
+		}
+	};
+
+	class OSetFalseI : public UnaryOpcode
+	{
+	public:
+		OSetFalseI(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OSetFalseI(a->clone());
 		}
 	};
 
@@ -1327,6 +1351,17 @@ namespace ZScript
 		}
 	};
 
+	class OSetMoreI : public UnaryOpcode
+	{
+	public:
+		OSetMoreI(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OSetMoreI(a->clone());
+		}
+	};
+
 	class OSetLess : public UnaryOpcode
 	{
 	public:
@@ -1335,6 +1370,17 @@ namespace ZScript
 		Opcode *clone()
 		{
 			return new OSetLess(a->clone());
+		}
+	};
+
+	class OSetLessI : public UnaryOpcode
+	{
+	public:
+		OSetLessI(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OSetLessI(a->clone());
 		}
 	};
 
@@ -1489,6 +1535,38 @@ namespace ZScript
 			return new OWaitdraw();
 		}
 	};
+	
+	class ONoOp : public Opcode
+	{
+	public:
+		string toString();
+		Opcode *clone()
+		{
+			return new ONoOp();
+		}
+	};
+	
+	class OCastBoolI : public UnaryOpcode
+	{
+	public:
+		OCastBoolI(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OCastBoolI(a->clone());
+		}
+	};
+	
+	class OCastBoolF : public UnaryOpcode
+	{
+	public:
+		OCastBoolF(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OCastBoolF(a->clone());
+		}
+	};
 
 	class OGotoImmediate : public UnaryOpcode
 	{
@@ -1553,6 +1631,17 @@ namespace ZScript
 		Opcode *clone()
 		{
 			return new OPushRegister(a->clone());
+		}
+	};
+
+	class OPushImmediate : public UnaryOpcode
+	{
+	public:
+		OPushImmediate(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OPushImmediate(a->clone());
 		}
 	};
 
@@ -1868,6 +1957,17 @@ namespace ZScript
 		Opcode *clone()
 		{
 			return new OTanRegister(a->clone(), b->clone());
+		}
+	};
+	
+	class Ostrlen : public BinaryOpcode
+	{
+	public:
+		Ostrlen(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrlen(a->clone(), b->clone());
 		}
 	};
 
@@ -3408,6 +3508,28 @@ namespace ZScript
 		Opcode *clone()
 		{
 			return new OCopyTileRegister(a->clone(),b->clone());
+		}
+	};
+	
+	class Ostrcpy : public BinaryOpcode
+	{
+	public:
+		Ostrcpy(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrcpy(a->clone(),b->clone());
+		}
+	};
+	
+	class oARRAYCOPY : public BinaryOpcode
+	{
+	public:
+		oARRAYCOPY(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new oARRAYCOPY(a->clone(),b->clone());
 		}
 	};
 
@@ -7502,6 +7624,381 @@ namespace ZScript
 		Opcode *clone()
 		{
 			return new OBMPDrawScreenCIFlagRegister();
+		}
+	};
+	
+	
+	class OStrCmp : public UnaryOpcode
+	{
+	public:
+		OStrCmp(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OStrCmp(a->clone());
+		}
+	};
+	class OStrNCmp : public UnaryOpcode
+	{
+	public:
+		OStrNCmp(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OStrNCmp(a->clone());
+		}
+	};
+	
+	class Oxlen : public BinaryOpcode
+	{
+	public:
+		Oxlen(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oxlen(a->clone(), b->clone());
+		}
+	};
+	
+	class Oxtoi : public BinaryOpcode
+	{
+	public:
+		Oxtoi(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oxtoi(a->clone(), b->clone());
+		}
+	};
+	
+	class Oilen : public BinaryOpcode
+	{
+	public:
+		Oilen(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oilen(a->clone(), b->clone());
+		}
+	};
+	
+	
+	class Oatoi : public BinaryOpcode
+	{
+	public:
+		Oatoi(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oatoi(a->clone(), b->clone());
+		}
+	};
+	
+	class Ostrcspn : public UnaryOpcode
+	{
+	public:
+		Ostrcspn(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrcspn(a->clone());
+		}
+	};
+	class Ostrstr : public UnaryOpcode
+	{
+	public:
+		Ostrstr(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrstr(a->clone());
+		}
+	};
+	class Oxtoa : public UnaryOpcode
+	{
+	public:
+		Oxtoa(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oxtoa(a->clone());
+		}
+	};
+	class Oitoa : public UnaryOpcode
+	{
+	public:
+		Oitoa(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oitoa(a->clone());
+		}
+	};
+	class Ostrcat : public UnaryOpcode
+	{
+	public:
+		Ostrcat(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrcat(a->clone());
+		}
+	};
+	class Ostrspn : public UnaryOpcode
+	{
+	public:
+		Ostrspn(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrspn(a->clone());
+		}
+	};
+	class Ostrchr : public UnaryOpcode
+	{
+	public:
+		Ostrchr(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrchr(a->clone());
+		}
+	};
+	class Ostrrchr : public UnaryOpcode
+	{
+	public:
+		Ostrrchr(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ostrrchr(a->clone());
+		}
+	};
+	class Oxlen2 : public UnaryOpcode
+	{
+	public:
+		Oxlen2(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oxlen2(a->clone());
+		}
+	};
+	class Oxtoi2 : public UnaryOpcode
+	{
+	public:
+		Oxtoi2(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oxtoi2(a->clone());
+		}
+	};
+	class Oilen2 : public UnaryOpcode
+	{
+	public:
+		Oilen2(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oilen2(a->clone());
+		}
+	};
+	class Oatoi2 : public UnaryOpcode
+	{
+	public:
+		Oatoi2(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oatoi2(a->clone());
+		}
+	};
+	class Oremchr2 : public UnaryOpcode
+	{
+	public:
+		Oremchr2(Argument *A) : UnaryOpcode(A) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oremchr2(a->clone());
+		}
+	};
+	
+	
+	class Ouppertolower : public BinaryOpcode
+	{
+	public:
+		Ouppertolower(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Ouppertolower(a->clone(), b->clone());
+		}
+	};
+	
+	class Olowertoupper : public BinaryOpcode
+	{
+	public:
+		Olowertoupper(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Olowertoupper(a->clone(), b->clone());
+		}
+	};
+	
+	class Oconvertcase : public BinaryOpcode
+	{
+	public:
+		Oconvertcase(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new Oconvertcase(a->clone(), b->clone());
+		}
+	};
+	
+	
+	//Game->Getthingbystring
+	class OGETNPCSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETNPCSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETNPCSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETLWEAPONSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETLWEAPONSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETLWEAPONSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETEWEAPONSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETEWEAPONSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETEWEAPONSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETHEROSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETHEROSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETHEROSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETGLOBALSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETGLOBALSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETGLOBALSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETDMAPSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETDMAPSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETDMAPSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETSCREENSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETSCREENSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETSCREENSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETSPRITESCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETSPRITESCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETSPRITESCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETUNTYPEDSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETUNTYPEDSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETUNTYPEDSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETSUBSCREENSCRIPT : public BinaryOpcode
+	{
+	public:
+		OGETSUBSCREENSCRIPT(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETSUBSCREENSCRIPT(a->clone(), b->clone());
+		}
+	};
+	class OGETNPCBYNAME : public BinaryOpcode
+	{
+	public:
+		OGETNPCBYNAME(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETNPCBYNAME(a->clone(), b->clone());
+		}
+	};
+	class OGETITEMBYNAME : public BinaryOpcode
+	{
+	public:
+		OGETITEMBYNAME(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETITEMBYNAME(a->clone(), b->clone());
+		}
+	};
+	class OGETCOMBOBYNAME : public BinaryOpcode
+	{
+	public:
+		OGETCOMBOBYNAME(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETCOMBOBYNAME(a->clone(), b->clone());
+		}
+	};
+	class OGETDMAPBYNAME : public BinaryOpcode
+	{
+	public:
+		OGETDMAPBYNAME(Argument *A, Argument *B) : BinaryOpcode(A,B) {}
+		string toString();
+		Opcode *clone()
+		{
+			return new OGETDMAPBYNAME(a->clone(), b->clone());
 		}
 	};
 	

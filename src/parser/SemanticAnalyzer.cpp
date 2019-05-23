@@ -62,7 +62,6 @@ SemanticAnalyzer::SemanticAnalyzer(Program& program)
 void SemanticAnalyzer::analyzeFunctionInternals(Function& function)
 {
 	ASTFuncDecl* functionDecl = function.node;
-
 	Scope& functionScope = *function.internalScope;
 
 	// Grab the script.
@@ -530,6 +529,17 @@ void SemanticAnalyzer::caseDataDeclExtraArray(
 
 void SemanticAnalyzer::caseFuncDecl(ASTFuncDecl& host, void*)
 {
+	if(host.getFlag(FUNCFLAG_INVALID))
+	{
+		handleError(CompileError::BadFuncModifiers(&host, host.invalidMsg));
+		return;
+	}
+	/* This option is being disabled for now, as inlining of user functions is being disabled -V
+	if(*lookupOption(*scope, CompileOption::OPT_FORCE_INLINE)
+		&& !host.isRun())
+	{
+		host.setFlag(FUNCFLAG_INLINE);
+	}*/
 	// Resolve the return type under current scope.
 	DataType const& returnType = host.returnType->resolve(*scope, this);
 	if (breakRecursion(*host.returnType.get())) return;
@@ -569,7 +579,8 @@ void SemanticAnalyzer::caseFuncDecl(ASTFuncDecl& host, void*)
 
 	// Add the function to the scope.
 	Function* function = scope->addFunction(
-			&returnType, host.name, paramTypes, &host);
+			&returnType, host.name, paramTypes, host.getFlags(), &host);
+	host.func = function;
 
 	// If adding it failed, it means this scope already has a function with
 	// that name.
@@ -810,7 +821,7 @@ void SemanticAnalyzer::caseExprIndex(ASTExprIndex& host, void* param)
     }
 }
 
-void SemanticAnalyzer::caseExprCall(ASTExprCall& host, void*)
+void SemanticAnalyzer::caseExprCall(ASTExprCall& host, void* param)
 {
 	// Cast left.
 	ASTExprArrow* arrow = NULL;
@@ -951,6 +962,44 @@ void SemanticAnalyzer::caseExprCall(ASTExprCall& host, void*)
 	}
 		
 	host.binding = bestFunctions.front();
+	
+	if(host.binding->getFlag(FUNCFLAG_INLINE))
+	{
+		/* This section has issues, and a totally new system for parameters must be devised. For now, just disabling inlining of user functions altogether. -V
+		if(!host.binding->isInternal())
+		{
+			//Check for recursion. Inline functions cannot be recursive, so if this is recursive, make it no longer inline.
+			for(vector<Function*>::reverse_iterator it = inlineStack.rbegin();
+				it != inlineStack.rend(); ++it)
+			{
+				if(*it == host.binding)
+				{
+					host.binding->setFlag(FUNCFLAG_INLINE, false);
+					return;
+				}
+				if(!(*it)->getFlag(FUNCFLAG_INLINE)) break;
+			}
+			inlineStack.push_back(host.binding);
+			scope = scope->makeChild();
+			DataType const* oldReturnType = returnType;
+			returnType = host.binding->returnType;
+			
+			host.inlineBlock = host.binding->node->block->clone();
+			host.inlineParams = host.binding->node->parameters;
+			int sz = host.parameters.size();
+			for(int q = 0; q < sz; ++q)
+			{
+				ASTExpr* init = host.parameters[q];
+				host.inlineParams[q]->setInitializer(init->clone());
+			}
+			visit(host, host.inlineParams, param);
+			RecursiveVisitor::caseBlock(*host.inlineBlock, param);
+			
+			scope = scope->getParent();
+			inlineStack.pop_back();
+			returnType = oldReturnType;
+		}*/
+	}
 }
 
 void SemanticAnalyzer::caseExprNegate(ASTExprNegate& host, void*)
@@ -1188,10 +1237,11 @@ void SemanticAnalyzer::caseArrayLiteral(ASTArrayLiteral& host, void*)
 
 void SemanticAnalyzer::caseOptionValue(ASTOptionValue& host, void*)
 {
+	/* handled in `ASTOptionValue->getCompileTimeValue()` now
 	if (optional<long> value = lookupOption(*scope, host.option))
 		host.value = value;
 	else
-		handleError(CompileError::UnknownOption(&host, host.name));
+		handleError(CompileError::UnknownOption(&host, host.name));*/
 }
 
 void SemanticAnalyzer::checkCast(
@@ -1208,6 +1258,7 @@ void SemanticAnalyzer::analyzeUnaryExpr(
 		ASTUnaryExpr& host, DataType const& type)
 {
 	visit(host.operand.get());
+	syncDisable(host, *host.operand);
 	if (breakRecursion(host)) return;
 	
 	checkCast(*host.operand->getReadType(scope, this), type, &host);
@@ -1217,6 +1268,7 @@ void SemanticAnalyzer::analyzeUnaryExpr(
 void SemanticAnalyzer::analyzeIncrement(ASTUnaryExpr& host)
 {
 	visit(host.operand.get(), paramReadWrite);
+	syncDisable(host, *host.operand);
     if (breakRecursion(host)) return;
 
 	ASTExpr& operand = *host.operand;
@@ -1229,11 +1281,13 @@ void SemanticAnalyzer::analyzeBinaryExpr(
 		DataType const& rightType)
 {
 	visit(host.left.get());
+	syncDisable(host, *host.left);
 	if (breakRecursion(host)) return;
 	checkCast(*host.left->getReadType(scope, this), leftType, &host);
 	if (breakRecursion(host)) return;
 
 	visit(host.right.get());
+	syncDisable(host, *host.right);
 	if (breakRecursion(host)) return;
 	checkCast(*host.right->getReadType(scope, this), rightType, &host);
 	if (breakRecursion(host)) return;
