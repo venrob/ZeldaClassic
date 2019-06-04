@@ -16,6 +16,9 @@ namespace ZScript
 	class Scope;
 	class ZClass;
 	class DataType;
+	
+	class AST;
+	class ASTExprIdentifier;
 
 	typedef int DataTypeId;
 
@@ -258,18 +261,20 @@ namespace ZScript
 	class DataTypeUnresolved : public DataType
 	{
 	public:
-		DataTypeUnresolved(std::string const& name) : DataType(NULL), name(name) {}
+		DataTypeUnresolved(ASTExprIdentifier* iden) : DataType(NULL), 
+				iden(iden) {}
+		~DataTypeUnresolved(){}
 		DataTypeUnresolved* clone() const {
 			return new DataTypeUnresolved(*this);}
 		
 		virtual bool isResolved() const {return false;}
 		virtual DataType* resolve(ZScript::Scope& scope);
 
-		virtual std::string getName() const {return name;}
+		virtual std::string getName() const;
 		virtual bool canCastTo(DataType const& target) const {return false;}
 
 	private:
-		std::string name;
+		ASTExprIdentifier* iden;
 
 		int selfCompare(DataType const& rhs) const;
 	};

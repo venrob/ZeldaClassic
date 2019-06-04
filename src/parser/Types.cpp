@@ -377,9 +377,19 @@ int ZScript::getArrayDepth(DataType const& type)
 ////////////////////////////////////////////////////////////////
 // DataTypeUnresolved
 
+DataTypeUnresolved::~DataTypeUnresolved()
+{
+	delete iden;
+}
+
+DataTypeUnresolved::getName() const {
+	if(iden) return iden->components.back();
+	return "Unresolved";
+}
+
 DataType* DataTypeUnresolved::resolve(Scope& scope)
 {
-	if (DataType const* type = lookupDataType(scope, name))
+	if (DataType const* type = lookupDataType(scope, iden))
 		return type->clone();
 	return NULL;
 }
@@ -387,7 +397,23 @@ DataType* DataTypeUnresolved::resolve(Scope& scope)
 int DataTypeUnresolved::selfCompare(DataType const& rhs) const
 {
 	DataTypeUnresolved const& o = static_cast<DataTypeUnresolved const&>(rhs);
-	return name.compare(o.name);
+	//If the types have a different number of components, use that as the comparison
+	if(int sz = iden->components.size() - o.iden->components.size()))
+		return sz;
+	else
+	{
+		int size = iden->delimiters.size();
+		//Check each component/delimiter, returning the first difference
+		for(int q = 0; q < size; ++q)
+		{
+			if(int dif = iden->components[q].compare(o.iden->components[q]))
+				return dif;
+			if(int dif = iden->delimiters[q].compare(o.iden->delimiters[q]))
+				return dif;
+		}
+		//If everything matches thus far, return a comparison of the final component
+		return iden->components.back().compare(o.iden->components.back());
+	}
 }
 
 ////////////////////////////////////////////////////////////////

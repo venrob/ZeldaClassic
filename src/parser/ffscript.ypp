@@ -466,10 +466,9 @@ DataType : ZCONST DataType {
 	| TUNE {$$ = new ASTDataType(DataType::TUNES, @$);}
 	| WARPRING	{$$ = new ASTDataType(DataType::WARPRING, @$);}
 	//Typedef types
-	| IDENTIFIER {
-			ASTString *name = (ASTString*)$1;
-			$$ = new ASTDataType(DataTypeUnresolved(name->getValue()), @$);
-			delete name;}
+	| Identifier_List {
+			ASTExprIdentifier* iden = (ASTExprIdentifier*)$1;
+			$$ = new ASTDataType(DataTypeUnresolved(iden), @$);}
 	;
 
 ScriptTypeDef : SCRIPT TYPEDEF Script_Type IDENTIFIER {

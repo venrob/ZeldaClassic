@@ -139,6 +139,15 @@ DataType const* ZScript::lookupDataType(
 	return NULL;
 }
 
+DataType const* ZScript::lookupDataType(
+	Scope const&, ASTExprIdentifier const* iden)
+{
+	//if(!iden->delimiters.size()) //If a simple identifier, look up simply.
+		return lookupDataType(scope, iden->components.back());
+		
+	
+}
+
 ScriptType ZScript::lookupScriptType(Scope const& scope, string const& name)
 {
 	for (Scope const* current = &scope;
