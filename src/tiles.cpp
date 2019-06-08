@@ -1627,7 +1627,11 @@ void putcombotranslucent(BITMAP* dest,int x,int y,int cmbdat,int cset,int opacit
             cofs |= ~int(0xF);
             
         for(int i=0; i<4; ++i)
+		{
             csets[i] = c.csets&(16<<i) ? cset + cofs : cset;
+			if(csets[i] < 0) csets[i] = (csets[i] % 12) + 12;
+			else if(csets[i] > 11) csets[i] %= 12;
+		}
             
         putblocktranslucent8(dest,drawtile<<2,x,y,csets,c.flip,15,opacity);
     }
@@ -2480,6 +2484,8 @@ void putcombo(BITMAP* dest,int x,int y,int cmbdat,int cset)
         for(int i=0; i<4; ++i)
         {
             csets[i] = c.csets&(16<<i) ? cset + cofs : cset;
+			if(csets[i] < 0) csets[i] = (csets[i] % 12) + 12;
+			else if(csets[i] > 11) csets[i] %= 12;
         }
         
         putblock8(dest,drawtile<<2,x,y,csets,c.flip,15);
