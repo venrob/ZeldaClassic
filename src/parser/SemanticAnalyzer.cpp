@@ -729,6 +729,7 @@ void SemanticAnalyzer::caseExprArrow(ASTExprArrow& host, void* param)
 {
     // Recurse on left.
 	visit(host.left.get());
+	syncDisable(host, *host.left);
     if (breakRecursion(host)) return;
 
 	// Grab the left side's class.
@@ -1009,7 +1010,7 @@ void SemanticAnalyzer::caseExprNegate(ASTExprNegate& host, void*)
 
 void SemanticAnalyzer::caseExprNot(ASTExprNot& host, void*)
 {
-	analyzeUnaryExpr(host, DataType::BOOL);
+	analyzeUnaryExpr(host, DataType::UNTYPED);
 }
 
 void SemanticAnalyzer::caseExprBitNot(ASTExprBitNot& host, void*)

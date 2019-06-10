@@ -2710,6 +2710,12 @@ int readrules(PACKFILE *f, zquestheader *Header, bool keepdata)
     if ( tempheader.zelda_version < 0x255 || (tempheader.zelda_version == 0x255 && tempheader.build < 46) )
     {
 	set_bit(quest_rules, qr_CLEARINITDONSCRIPTCHANGE, 1);  	    
+	  	    
+    }
+    if ( tempheader.zelda_version < 0x255 )
+    {
+	  set_bit(quest_rules, qr_NOFFCWAITDRAW, 1);  
+	  set_bit(quest_rules, qr_NOITEMWAITDRAW, 1);  
     }
     //Sideview spikes in 2.50.0
     if(tempheader.zelda_version < 0x250 || (tempheader.zelda_version == 0x250 && tempheader.build<27)) //2.50.1RC3
@@ -12774,6 +12780,16 @@ int readmapscreen(PACKFILE *f, zquestheader *Header, mapscr *temp_mapscr, zcmap 
 		} 
 	}
     }
+    if ( version < 19 )
+    {
+	for ( int q = 0; q < 10; q++ ) 
+	{
+	    temp_mapscr->npcstrings[q] = 0;
+	    temp_mapscr->new_items[q] = 0;
+	    temp_mapscr->new_item_x[q] = 0;
+	    temp_mapscr->new_item_y[q] = 0;
+	}
+    }
     if ( version >= 20 )
     {
 	if(!p_igetw(&(temp_mapscr->script),f,true))
@@ -12788,6 +12804,24 @@ int readmapscreen(PACKFILE *f, zquestheader *Header, mapscr *temp_mapscr, zcmap 
 		}
 	}		
     }
+    if ( version < 20 )
+    {
+	temp_mapscr->script = 0;
+	for ( int q = 0; q < 8; q++) temp_mapscr->screeninitd[q] = 0;
+    }
+    if ( version >= 21 )
+    {
+	if(!p_getc(&(temp_mapscr->preloadscript),f,true))
+	{
+		return qe_invalid;
+	}     
+    }
+    if ( version < 21 )
+    {
+	temp_mapscr->preloadscript = 0;    
+    }
+    //all builds with version > 20 need this. -Z
+    temp_mapscr->ffcswaitdraw = 0;
     
     //Dodongos in 2.10 used the boss roar, not the dodongo sound. -Z
     //May be any version before 2.11. -Z
@@ -13276,6 +13310,23 @@ int readcombos(PACKFILE *f, zquestheader *Header, word version, word build, word
 		if(!p_igetl(&temp_combo.triggerlevel,f,true))
 		{
 			return qe_invalid;
+		}
+	}
+	if(section_version>=12) //combo label
+	{
+	    for ( int q = 0; q < 11; q++ )
+		{
+		    if(!p_getc(&temp_combo.label[q],f,true))
+		    {
+			return qe_invalid;
+		    }
+		}
+	}
+	if(section_version<12) //combo label
+	{
+	    for ( int q = 0; q < 11; q++ )
+		{
+		    temp_combo.label[q] = 0;
 		}
 	}
         if(version < 0x193)

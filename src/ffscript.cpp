@@ -28,7 +28,11 @@ ZModule zcm;
 zcmodule moduledata;
 script_bitmaps scb;
 
-
+const char script_types[11][16]=
+{
+	"global", "ffc", "screendata", "hero", "item", "lweapon", "npc", "subscreen",
+	"eweapon", "dmapdata", "itemsprite"
+};
 	
 	
 	
@@ -175,6 +179,7 @@ int FFScript::atox(char *ip_str)
 }
 
 char runningItemScripts[256] = {0};
+byte itemScriptsWaitdraw[256] = {0};
  
 //item *FFCore.temp_ff_item = NULL;
 //enemy *FFCore.temp_ff_enemy = NULL;
@@ -12928,6 +12933,21 @@ void do_rnd(const bool v)
 		set_register(sarg1, 0); // Just return 0. (Do not log an error)
 }
 
+void do_srnd(const bool v)
+{
+	unsigned int seed = SH::get_arg(sarg1, v); //Do not `/10000`- allow the decimal portion to be used! -V
+	srand(seed);
+}
+
+void do_srndrnd()
+{
+	//Randomize the seed to the current system time, + or - the product of 2 random numbers.
+	int seed = time(0) + ((rand() * rand()) * ((rand() % 2) ? 1 : -1));
+	seed = vbound(seed, -2147479999, 2147479999); //Don't allow it to be outside ZScript range, so it can be returned.
+	set_register(sarg1, seed);
+	srand(seed);
+}
+
 //Returns the system Real-Time-Clock value for a specific type. 
 void FFScript::getRTC(const bool v)
 {
@@ -16636,7 +16656,7 @@ int run_script(const byte type, const word script, const long i)
 	    
 	    case SCRIPT_SCREEN:
 	    {
-		Z_scripterrlog("FFScript found a screen script to run, id: %d\n", script);
+		//Z_scripterrlog("FFScript found a screen script to run, id: %d\n", script);
 		ri = &(screenScriptData);
 		curscript = screenscripts[script];
 		stack = &(screen_stack);
@@ -17050,20 +17070,20 @@ int run_script(const byte type, const word script, const long i)
 		case LOWERTOUPPER: FFCore.do_LowerToUpper(false); break;
 		case CONVERTCASE: FFCore.do_ConvertCase(false); break;
 			
-		case GETNPCSCRIPT:	FFCore.do_getnpcscript(false); break;
-		case GETLWEAPONSCRIPT:	FFCore.do_getlweaponscript(false); break;
-		case GETEWEAPONSCRIPT:	FFCore.do_geteweaponscript(false); break;
-		case GETHEROSCRIPT:	FFCore.do_getheroscript(false); break;
-		case GETGLOBALSCRIPT:	FFCore.do_getglobalscript(false); break;
-		case GETDMAPSCRIPT:	FFCore.do_getdmapscript(false); break;
-		case GETSCREENSCRIPT:	FFCore.do_getscreenscript(false); break;
-		case GETSPRITESCRIPT:	FFCore.do_getitemspritescript(false); break;
-		case GETUNTYPEDSCRIPT:	FFCore.do_getuntypedscript(false); break;
-		case GETSUBSCREENSCRIPT:FFCore.do_getsubscreenscript(false); break;
-		case GETNPCBYNAME:	FFCore.do_getnpcbyname(false); break;
-		case GETITEMBYNAME:	FFCore.do_getitembyname(false); break;
-		case GETCOMBOBYNAME:	FFCore.do_getcombobyname(false); break;
-		case GETDMAPBYNAME:	FFCore.do_getdmapbyname(false); break;
+		case GETNPCSCRIPT:	FFCore.do_getnpcscript(); break;
+		case GETLWEAPONSCRIPT:	FFCore.do_getlweaponscript(); break;
+		case GETEWEAPONSCRIPT:	FFCore.do_geteweaponscript(); break;
+		case GETHEROSCRIPT:	FFCore.do_getheroscript(); break;
+		case GETGLOBALSCRIPT:	FFCore.do_getglobalscript(); break;
+		case GETDMAPSCRIPT:	FFCore.do_getdmapscript(); break;
+		case GETSCREENSCRIPT:	FFCore.do_getscreenscript(); break;
+		case GETSPRITESCRIPT:	FFCore.do_getitemspritescript(); break;
+		case GETUNTYPEDSCRIPT:	FFCore.do_getuntypedscript(); break;
+		case GETSUBSCREENSCRIPT:FFCore.do_getsubscreenscript(); break;
+		case GETNPCBYNAME:	FFCore.do_getnpcbyname(); break;
+		case GETITEMBYNAME:	FFCore.do_getitembyname(); break;
+		case GETCOMBOBYNAME:	FFCore.do_getcombobyname(); break;
+		case GETDMAPBYNAME:	FFCore.do_getdmapbyname(); break;
 		    
 		case ABSR:
 		    do_abs(false);
@@ -17092,6 +17112,18 @@ int run_script(const byte type, const word script, const long i)
 		case RNDV:
 		    do_rnd(true);
 		    break;
+			
+		case SRNDR:
+			do_srnd(false);
+			break;
+			
+		case SRNDV:
+			do_srnd(true);
+			break;
+			
+		case SRNDRND:
+			do_srndrnd();
+			break;
 		
 		case GETRTCTIMER:
 		    FFCore.getRTC(false);
@@ -18753,8 +18785,55 @@ int run_script(const byte type, const word script, const long i)
 		dmap_waitdraw = true;
 		break;
 	
+	case SCRIPT_SCREEN:
+		tmpscr->screen_waitdraw = 1;
+		break;
+	
+	case SCRIPT_ITEM:
+		itemScriptsWaitdraw[i] = 1;
+		break;
+	
+	/* Not just yet.
+	case SCRIPT_NPC:
+	{
+		guys.spr(GuyH::getNPCIndex(i))->waitdraw = 1;
+		break;
+	}
+	case SCRIPT_LWPN:
+	{
+		Lwpns.spr(LwpnH::getLWeaponIndex(i))->waitdraw = 1;
+		break;
+	}
+	*/
+	case SCRIPT_EWPN:
+	{
+	
+		Ewpns.spr(EwpnH::getEWeaponIndex(i))->waitdraw = 1;
+		break;
+	}
+	case SCRIPT_ITEMSPRITE:
+	{
+		items.spr(ItemH::getItemIndex(i))->waitdraw = 1;
+		break;
+	}
+	
+	case SCRIPT_FFC:
+	{
+		if ( !(get_bit(quest_rules, qr_NOFFCWAITDRAW)) )
+		{
+		//Z_scripterrlog("FFScript: FFC (%d) issued WAITDRAW\n", i);
+			tmpscr->ffcswaitdraw |= (1<<i);
+		//set_bitl(tmpscr->ffcswaitdraw, i, 1);
+		}
+		else
+		{
+			Z_scripterrlog("Waitdraw cannot be used in script type: %s\n", "ffc, with Script Rule 'No FFC Waitdraw() enabled!");
+		}
+		break;
+	}
+	
         default:
-            Z_scripterrlog("Waitdraw can only be used in the active global script\n");
+            Z_scripterrlog("Waitdraw cannot be used in script type: %s\n", script_types[type]);
             break;
         }
     }
@@ -18791,6 +18870,7 @@ int run_script(const byte type, const word script, const long i)
 		    memset(stack, 0xFFFF, MAX_SCRIPT_REGISTERS * sizeof(long));
 		    stack = pvsstack;
 		    //stack = NULL;
+			if ( (itemsbuf[i].flags&ITEM_FLAG16) && game->item[i] ) itemsbuf[i].script = 0; //Quit perpetual scripts, too.
 		    break; //item scripts aren't gonna go again anyway
 		}
 		case SCRIPT_NPC:
@@ -18877,6 +18957,11 @@ int run_script(const byte type, const word script, const long i)
 //This keeps ffc scripts running beyond the first frame. 
 int ffscript_engine(const bool preload)
 {
+    //run screen script, first
+	//Z_scripterrlog("Screen Script Preload? %s \n", ( tmpscr->preloadscript ? "true" : "false"));
+	if(( preload && tmpscr->preloadscript) || !preload )
+	ZScriptVersion::RunScript(SCRIPT_SCREEN, tmpscr->script, 0);
+    
     for(byte i = 0; i < MAXFFCS; i++)
     {
         if(tmpscr->ffscript[i] == 0)
@@ -18891,10 +18976,7 @@ int ffscript_engine(const bool preload)
         ZScriptVersion::RunScript(SCRIPT_FFC, tmpscr->ffscript[i], i);
         tmpscr->initialized[i] = true;
     }
-    if ( tmpscr->script != 0 )
-    {
-	ZScriptVersion::RunScript(SCRIPT_SCREEN, tmpscr->script, 0);    
-    }
+    
     
     return 0;
 }
@@ -21611,7 +21693,7 @@ bool FFScript::itemScriptEngine()
 			//ZScriptVersion::RunScript(SCRIPT_ITEM, itemsbuf[i].script);
 			//ZScriptVersion::RunScript(SCRIPT_ITEM, itemsbuf[i].script, i);
 			//Z_scripterrlog("Script Detected for that item is: %d\n",itemsbuf[q].script);
-			if ( runningItemScripts[q] == 1 )
+			if ( runningItemScripts[q] == 1 || ( /*PASSIVE ITEM THAT ALWAYS RUNS*/ ((itemsbuf[q].flags&ITEM_FLAG16) && game->item[q])) )
 			{
 				if ( get_bit(quest_rules,qr_ITEMSCRIPTSKEEPRUNNING) )
 				{
@@ -21627,6 +21709,44 @@ bool FFScript::itemScriptEngine()
 				Z_scripterrlog("The item script is still running because it was forced by %s\n","itemdata->RunScript(true)");
 				ZScriptVersion::RunScript(SCRIPT_ITEM, itemsbuf[q].script, q & 0xFFF);
 			}
+		//}
+		    
+	}
+	
+	return false;
+}
+
+bool FFScript::itemScriptEngineOnWaitdraw()
+{
+	//Z_scripterrlog("Trying to check if an %s is running.\n","item script");
+	for ( int q = 0; q < 256; q++ )
+	{
+		//Z_scripterrlog("Checking item ID: %d\n",q);
+		if ( itemsbuf[q].script == 0 ) continue;
+		if ( !itemScriptsWaitdraw[q] ) continue;
+		//if ( runningItemScripts[i] == 1 )
+		//{
+			//Z_scripterrlog("Found a script running on item ID: %d\n",q);
+			//ZScriptVersion::RunScript(SCRIPT_ITEM, itemsbuf[i].script);
+			//ZScriptVersion::RunScript(SCRIPT_ITEM, itemsbuf[i].script, i);
+			//Z_scripterrlog("Script Detected for that item is: %d\n",itemsbuf[q].script);
+			if ( runningItemScripts[q] == 1 || ( /*PASSIVE ITEM THAT ALWAYS RUNS*/ ((itemsbuf[q].flags&ITEM_FLAG16) && game->item[q])) )
+			{
+				if ( get_bit(quest_rules,qr_ITEMSCRIPTSKEEPRUNNING) )
+				{
+					ZScriptVersion::RunScript(SCRIPT_ITEM, itemsbuf[q].script, q & 0xFFF);
+				}
+				else //if the QR isn't set, treat Waitframe as Quit()
+				{
+					runningItemScripts[q] = 0;
+				}
+			}
+			else if ( runningItemScripts[q] == 2 ) //forced to run perpetually by itemdata->RunScript(int mode)
+			{
+				Z_scripterrlog("The item script is still running because it was forced by %s\n","itemdata->RunScript(true)");
+				ZScriptVersion::RunScript(SCRIPT_ITEM, itemsbuf[q].script, q & 0xFFF);
+			}
+			itemScriptsWaitdraw[q] = 0;
 		//}
 		    
 	}
@@ -22058,6 +22178,433 @@ void FFScript::eweaponScriptEngine()
 	}
 }
 
+void FFScript::eweaponScriptEngineOnWaitdraw()
+{
+	for ( int q = 0; q < Ewpns.Count(); q++ )
+	{
+		//ri->ewpn = Ewpns.spr(q)->getUID();
+		//Z_scripterrlog("lweaponScriptEngine(): UID (%d) ri->ewpn (%d)\n", Ewpns.spr(q)->getUID(), ri->ewpn);
+		//ri->ewpn = Ewpns.spr(q)->getUID();
+		weapon *wp = (weapon*)Ewpns.spr(q);
+		if ( wp->isLWeapon ) continue;
+		//if ( wp->Dead() ) continue;
+		//if ( Ewpns.spr(q)->weaponscript == 0 ) continue;
+		//if ( Ewpns.spr(q)->doscript == 0 ) continue;
+		if ( wp->doscript && wp->waitdraw ) 
+		{
+			ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, wp->getUID());		
+			wp->waitdraw = 0;
+		}
+		/*
+		switch(Ewpns.spr(q)->id)
+		{
+		    case ewSword:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					//memset(w->stack, 0xFFFF, sizeof(w->stack));
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);		
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		
+		    
+		    case ewFlame:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());
+					ri->ewpn = w->getUID();
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+				}
+			}
+			break;
+		    }
+		    
+		    
+		    case ewSBomb:
+		    case ewBomb:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());
+					ri->ewpn = w->getUID();
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+				}
+			}
+			break;
+		    }
+		    
+		    case ewLitBomb:
+		    case ewLitSBomb:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());
+					ri->ewpn = w->getUID();
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+				}
+			}
+			break;
+		    }
+		    
+		    case ewArrow:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();					
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			
+			break;
+		    }
+		    
+		    case ewRock:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+				    //al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+				    //ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+				    //ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+				    //ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+				    ri->ewpn = w->getUID();
+				    ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		    case ewBrang:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);		
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+		
+			
+			break;
+		    }
+		    
+		    case ewMagic:
+		    {
+			//:Weapon Only
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		    
+		    case ewFireball:
+		    case ewFireball2:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		    
+		    case ewFireTrail:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		    case ewWind:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    } 
+		    case ewFlame2:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    } 
+		    case ewFlame2Trail:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		    
+		    case ewIce:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		    case wScript1:
+		    case wScript2:
+		    case wScript3:
+		    case wScript4:
+		    case wScript5:
+		    case wScript6:
+		    case wScript7:
+		    case wScript8:
+		    case wScript9:
+		    case wScript10:
+		    {
+			weapon *wa = (weapon*)Ewpns.spr(q);
+			//if ( wa->Dead() ) break;
+			if ( Ewpns.spr(q)->doscript && Ewpns.spr(q)->weaponscript > 0 ) 
+			{
+				weapon *w = (weapon*)Ewpns.spr(q);
+				if ( w->Dead() )
+				{
+					Ewpns.spr(q)->doscript = 0;
+					Ewpns.spr(q)->weaponscript = 0;
+					break;
+				}
+				else
+				{
+					//al_trace("Found an lweapon index of: %d, when trying to run an lweapon script.\n",w_index);
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, index);		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, Ewpns.spr(q)->getUID());		
+					//ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, ri->ewpn);	
+					ri->ewpn = w->getUID();
+					ZScriptVersion::RunScript(SCRIPT_EWPN, Ewpns.spr(q)->weaponscript, w->getUID());		
+				}
+			}
+			break;
+		    }
+		    default: break;
+		}
+		*/
+	}
+}
+
 void FFScript::itemSpriteScriptEngine()
 {
 	for ( int q = 0; q < items.Count(); q++ )
@@ -22065,6 +22612,21 @@ void FFScript::itemSpriteScriptEngine()
 		item *wp = (item*)items.spr(q);
 		if ( wp->script == 0 ) continue;
 		if ( wp->doscript ) ZScriptVersion::RunScript(SCRIPT_ITEMSPRITE, items.spr(q)->script, wp->getUID());		
+	}
+}
+
+void FFScript::itemSpriteScriptEngineOnWaitdraw()
+{
+	for ( int q = 0; q < items.Count(); q++ )
+	{
+		
+		item *wp = (item*)items.spr(q);
+
+		if ( wp->waitdraw && wp->doscript && wp->script ) 
+		{
+			ZScriptVersion::RunScript(SCRIPT_ITEMSPRITE, items.spr(q)->script, wp->getUID());
+			wp->waitdraw = 0;
+		}			
 	}
 }
 
@@ -22801,9 +23363,9 @@ void FFScript::do_UpperToLower(const bool v)
 	else set_register(sarg1, (10000));
 }
 
-void FFScript::do_getnpcscript(const bool v)
+void FFScript::do_getnpcscript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22818,9 +23380,9 @@ void FFScript::do_getnpcscript(const bool v)
 	}
 	set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_getlweaponscript(const bool v)
+void FFScript::do_getlweaponscript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22835,9 +23397,9 @@ void FFScript::do_getlweaponscript(const bool v)
 	}
 	set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_geteweaponscript(const bool v)
+void FFScript::do_geteweaponscript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22852,9 +23414,9 @@ void FFScript::do_geteweaponscript(const bool v)
 	}
 	set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_getheroscript(const bool v)
+void FFScript::do_getheroscript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22869,9 +23431,9 @@ void FFScript::do_getheroscript(const bool v)
 	}
 	set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_getglobalscript(const bool v)
+void FFScript::do_getglobalscript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22886,9 +23448,9 @@ void FFScript::do_getglobalscript(const bool v)
 	}
 	set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_getdmapscript(const bool v)
+void FFScript::do_getdmapscript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22903,9 +23465,9 @@ void FFScript::do_getdmapscript(const bool v)
 	}
 	set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_getscreenscript(const bool v)
+void FFScript::do_getscreenscript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22920,9 +23482,9 @@ void FFScript::do_getscreenscript(const bool v)
 	}
 	set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_getitemspritescript(const bool v)
+void FFScript::do_getitemspritescript()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int script_num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22938,7 +23500,7 @@ void FFScript::do_getitemspritescript(const bool v)
 	set_register(sarg1, (script_num * 10000));
 }
 //Not assigned to slots at present. If they ever are, then this would get the id of any script (any type) by name. -Z
-void FFScript::do_getuntypedscript(const bool v)
+void FFScript::do_getuntypedscript()
 {
 	set_register(sarg1, 0);
 	//long arrayptr = ri->d[0]/10000;
@@ -22956,7 +23518,7 @@ void FFScript::do_getuntypedscript(const bool v)
 	//}
 	//set_register(sarg1, (script_num * 10000));
 }
-void FFScript::do_getsubscreenscript(const bool v)
+void FFScript::do_getsubscreenscript()
 {
 	//long arrayptr = ri->d[0]/10000;
 	//string the_string;
@@ -22974,9 +23536,9 @@ void FFScript::do_getsubscreenscript(const bool v)
 	//set_register(sarg1, (script_num * 10000));
 	set_register(sarg1, 0); //Remove this line, when we add this script type, then un-comment the rest. -Z
 }
-void FFScript::do_getnpcbyname(const bool v)
+void FFScript::do_getnpcbyname()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -22991,9 +23553,9 @@ void FFScript::do_getnpcbyname(const bool v)
 	}
 	set_register(sarg1, (num * 10000));
 }	
-void FFScript::do_getitembyname(const bool v)
+void FFScript::do_getitembyname()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -23008,14 +23570,26 @@ void FFScript::do_getitembyname(const bool v)
 	}
 	set_register(sarg1, (num * 10000));
 }	
-void FFScript::do_getcombobyname(const bool v)
+void FFScript::do_getcombobyname()
 {
-	set_register(sarg1, 0); //Until I add combo labels. -Z
-	
+	long arrayptr = get_register(sarg1) / 10000;
+	string the_string;
+	int num = -1;
+	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
+    
+	for(int q = 0; q < MAXCOMBOS; q++)
+	{
+		if(!(strcmp(the_string.c_str(), combobuf[q].label)))
+		{
+			num = q;
+			break;
+		}
+	}
+	set_register(sarg1, (num * 10000));
 }
-void FFScript::do_getdmapbyname(const bool v)
+void FFScript::do_getdmapbyname()
 {
-	long arrayptr = ri->d[0]/10000;
+	long arrayptr = get_register(sarg1) / 10000;
 	string the_string;
 	int num = -1;
 	FFCore.getString(arrayptr, the_string, 256); //What is the max length of a script identifier?
@@ -23243,7 +23817,8 @@ void FFScript::do_itoa()
 	long arrayptr_a = ri->d[1]/10000;
 	int value = ri->d[0]/10000;
 	char the_string[13];
-	_itoa(value, the_string, 10);
+	char* chrptr = NULL;
+	chrptr = _itoa(value, the_string, 10);
 	//Returns the number of characters used. 
 	if(ArrayH::setArray(arrayptr_a, the_string) == SH::_Overflow)
 		Z_scripterrlog("Dest string supplied to 'itoa()' not large enough\n");

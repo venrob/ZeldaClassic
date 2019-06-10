@@ -2770,6 +2770,7 @@ void do_dcounters()
 void game_loop()
 {
 	
+	
 	//for ( int qq = 0; qq < 256; qq++ )
     //{
 	    
@@ -2998,6 +2999,34 @@ void game_loop()
         ZScriptVersion::RunScript(SCRIPT_DMAP, DMaps[currdmap].script,currdmap);
 	dmap_waitdraw = false;
     }
+    
+    if ( tmpscr->script != 0 && tmpscr->screen_waitdraw )
+    {
+	ZScriptVersion::RunScript(SCRIPT_SCREEN, tmpscr->script, 0);  
+	tmpscr->screen_waitdraw = 0;	    
+    }
+    
+    for ( int q = 0; q < 32; ++q )
+    {
+	//Z_scripterrlog("tmpscr->ffcswaitdraw is: %d\n", tmpscr->ffcswaitdraw);
+	if ( tmpscr->ffcswaitdraw&(1<<q) )
+	{
+		//Z_scripterrlog("FFC (%d) called Waitdraw()\n", q);
+		if(tmpscr->ffscript[q] != 0)
+		{
+			ZScriptVersion::RunScript(SCRIPT_FFC, tmpscr->ffscript[q], q);
+			tmpscr->ffcswaitdraw &= ~(1<<q);
+		}
+	}
+    }
+    
+    //Waitdraw for item scripts. 
+    FFCore.itemScriptEngineOnWaitdraw();
+    
+    //Sprite scripts on Waitdraw
+    FFCore.eweaponScriptEngineOnWaitdraw();
+    FFCore.itemSpriteScriptEngineOnWaitdraw();
+    
     
     
     
@@ -3648,6 +3677,7 @@ int main(int argc, char* argv[])
         //{
         //    int t_time_v = FFCore.getTime(q);
         //}
+	    
         break;
     }
         
